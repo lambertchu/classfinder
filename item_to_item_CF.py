@@ -4,8 +4,9 @@ import psycopg2
 from scipy import spatial
 
 try:
-    # psql -h lambertchu.lids.mit.edu -U postgres -d lambertchu
-    conn = psycopg2.connect("dbname='lambertchu' user='postgres' host='lambertchu.lids.mit.edu' password=''")
+    with open('pass.txt', 'r') as f:
+        password = f.readline()
+    conn = psycopg2.connect("dbname='lambertchu' user='postgres' host='lambertchu.lids.mit.edu' password='%s'" % password)
     print "Connected to database"
 except:
     print "Unable to connect to the database"
@@ -43,7 +44,7 @@ for cls in classes:
     cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data WHERE Subject = %s", (cls,))
     records = cursor.fetchall()
     students = [student[0] for student in records]
-
+    break
     for student in students:
         #print student
         cursor.execute("SELECT DISTINCT Subject FROM enrollment_data WHERE Identifier = %s", (student,))
@@ -64,8 +65,8 @@ for cls in classes:
 
 # use str.strip() method to remove whitespaces in class names
 # output data to CSV
-with open("output.csv", "wb") as f:
-    writer = csv.writer(f)
-    writer.writerow(classes)
-    writer.writerows(similarity_table)
+#with open("output.csv", "wb") as f:
+#    writer = csv.writer(f)
+#    writer.writerow(classes)
+#    writer.writerows(similarity_table)
 sys.exit()
