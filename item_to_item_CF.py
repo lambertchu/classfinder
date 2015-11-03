@@ -17,16 +17,10 @@ except:
 cursor = conn.cursor()
 
 # execute our query - get list of all classes
-cursor.execute("SELECT DISTINCT Subject FROM enrollment_data")
+cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated")
 
-# retrieve the records from the query
-records = cursor.fetchall()     # list of tuples
-print len(records)
-
-# extract classes from records
-classes = []
-for record in records:
-    classes.append(record[0])
+# extract classes from cursor records
+classes = [cl[0] for cl in cursor.fetchall()]
 num_classes = len(classes)
 
 # create hash table with keys = classes and values = index in list
@@ -41,32 +35,40 @@ similarity_table = [[0 for x in xrange(num_classes)] for y in xrange(num_classes
 # implementation of item-to-item CF
 for cls in classes:
     print cls
-    cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data WHERE Subject = %s", (cls,))
-    records = cursor.fetchall()
-    students = [student[0] for student in records]
-    break
+    cls_pos = class_table[cls]
+    cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated WHERE Subject = %s", (cls,))
+    students = [student[0] for student in cursor.fetchall()]
+
     for student in students:
         #print student
-        cursor.execute("SELECT DISTINCT Subject FROM enrollment_data WHERE Identifier = %s", (student,))
-        records = cursor.fetchall()
-        subjects = [subject[0] for subject in records]
+        cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated WHERE Identifier = %s", (student,))
+        subjects = [subject[0] for subject in cursor.fetchall()]
         #print len(subjects)
         
         for subject in subjects:    # subjects are the classes that student has taken
-            matrix[class_table[cls]][class_table[subject]] += 1     # goes down column, then across the row
+            matrix[cls_pos][class_table[subject]] += 1     # goes down column, then across the row
 
+    count = 0
     for c in classes:
+        if count > cls_pos:
+            break
+
         # compute similarity between cls and c
-        cls_list = matrix[class_table[cls]]
+        cls_list = matrix[cls_pos]
         c_list = matrix[class_table[c]]
         similarity = 1 - spatial.distance.cosine(cls_list, c_list)
-        similarity_table[class_table[cls]][class_table[c]] = similarity
+        similarity_table[cls_pos][class_table[c]] = similarity
+        count += 1
 
 
-# use str.strip() method to remove whitespaces in class names
+# output matrix to CSV
+with open("output_matrix_updated.csv", "wb") as f:
+    writer = csv.writer(f)
+    writer.writerows(matrix)
+
 # output data to CSV
-#with open("output.csv", "wb") as f:
-#    writer = csv.writer(f)
-#    writer.writerow(classes)
-#    writer.writerows(similarity_table)
+with open("output_new_updated.csv", "wb") as f:
+    writer = csv.writer(f)
+    writer.writerow(classes)
+    writer.writerows(similarity_table)
 sys.exit()
