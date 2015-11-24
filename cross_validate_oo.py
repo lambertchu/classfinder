@@ -1,11 +1,10 @@
-# calculate i2i CF for the first 800 students
-# for each of the remaining 200 students
+# calculate i2i CF for the first 1100 students
+# for each of the remaining 100 students
 #   reveal one more semester
 #       find new classes that are most similar to those already taken
 #       recommend the top X for next semester
 #       calculate coverage & accuracy based upon S (selected next semester) and R (recommended)
 
-# TODO: fix initial file read
 
 import sys
 import math
@@ -13,54 +12,58 @@ import csv
 import psycopg2
 from scipy import spatial
 
-def get_database_conn():
-    try:
-        with open('pass.txt', 'r') as f:
-            password = f.readline()
-        conn = psycopg2.connect("dbname='lambertchu' user='postgres' host='lambertchu.lids.mit.edu' password='%s'" % password)
-    except:
-        print "Unable to connect to the database"
-        sys.exit()
-
-    # conn.cursor will return a cursor object that you can use to perform queries
-    return conn.cursor()
-
-
-"""
-Get list of all classes
-"""
-def get_all_classes():
-    cursor = get_database_conn()
-    cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated")
-    classes = [cl[0] for cl in cursor.fetchall()]
-    #num_classes = len(classes)
-    return classes
+# connect to database
+try:
+    with open('pass.txt', 'r') as f:
+        password = f.readline()
+    conn = psycopg2.connect("dbname='lambertchu' user='postgres' host='lambertchu.lids.mit.edu' password='%s'" % password)
+except:
+    print "Unable to connect to the database"
+    sys.exit()
+# conn.cursor will return a cursor object that you can use to perform queries
+cursor = conn.cursor()
 
 
-"""
-Create hash table with keys = classes and values = index in list
-"""
-def create_class_table():
-    classes = get_all_classes()
-    return {k:v for k, v in zip(classes, xrange(len(classes)))}
+# Get list of all classes
+cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated")
+classes = [cl[0] for cl in cursor.fetchall()]
+num_classes = len(classes)
+
+
+# get last X students - we should make this a parameter for the program
+cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated WHERE Identifier > 10001100")
+target_students = [s[0] for s in cursor.fetchall()]
+print target_students
 
 
 """
-create 2D list with number of students that took each pair of classes
-NOTE: we should re-create this file with the class names in the header
-      and use that info to create the shared_classes_table
-    Maybe we should do this first, then create the list of classes and hash table
+Create 2D list with number of students that took each pair of classes
 """
-def create_shared_classes_table():
-    with open('output_matrix_updated.csv', 'r') as f:
-        reader = csv.reader(f)
-        return list(reader)
+def create_shared_classes_table(class_table):
+    print "Creating matrix of shared classes..."
 
+    # create nxn matrix with n = total number of classes
+    matrix = [[0 for x in xrange(num_classes)] for y in xrange(num_classes)]
+
+    for cls in classes:
+        cls_pos = class_table[cls]
+        cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated WHERE Subject = %s", (cls,))
+        students = [student[0] for student in cursor.fetchall()]
+
+        for student in students:
+            if student not in target_students:
+                cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated WHERE Identifier = %s", (student,))
+                subjects = [subject[0] for subject in cursor.fetchall()]
+            
+                for subject in subjects:    # subjects are the classes that student has taken
+                    matrix[cls_pos][class_table[subject]] += 1     # goes down column, then across the row
+
+    return matrix
 
 """
 Create hash table for total number of students that took each class
 """
-def create_totals_table(classes, shared_classes_table):
+def create_totals_table(shared_classes_table):
     totals = {}
     count = 0
     for row in shared_classes_table:
@@ -74,107 +77,100 @@ def create_totals_table(classes, shared_classes_table):
 Get number of terms taken by a student
 """
 def get_terms(student):
-    cursor = get_database_conn()
+    #cursor = get_database_conn()
     cursor.execute("SELECT DISTINCT Term_Number FROM enrollment_data_updated WHERE Identifier = %s", (student,))
     terms = sorted([term[0] for term in cursor.fetchall()])
     return terms
 
-def make_recommendations():
-    cursor = get_database_conn()
-    # get last X students - we should make this a parameter for the script
-    #cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated") # WHERE Identifier = ...
-    #students = [student[0] for student in cursor.fetchall()]
-    students = ["10001010"]
+def generate_recommendations():
+    print "Generating recommendations..."
 
-    classes = get_all_classes()
-    class_table = create_class_table()
-    shared_classes_table = create_shared_classes_table()
-    totals = create_totals_table(classes, shared_classes_table)
+    # create hash table with keys = classes and values = index in list
+    class_table = {k:v for k, v in zip(classes, xrange(num_classes))}
 
-    # create table: key = term, value = importance ratings of classes for that student
-    # used for calculating recommendation ratings
-    importance_table = {}
+    shared_classes_table = create_shared_classes_table(class_table)
+    totals = create_totals_table(shared_classes_table)
 
+    with open("cv_errors.csv", "wb") as f:
+        writer = csv.writer(f)
 
-    # create hash table with keys = terms, values = dictionary mapping class to ranking
-    # used for calculating errors
-    class_rankings_by_term = {}
+        for student in target_students:
+            writer.writerow([student])
 
-    for student in students:
-        terms = get_terms(student)
-        subjects = []
+            # create table: key = term, value = importance ratings of classes for that student
+            # used for calculating recommendation ratings
+            importance_table = {}
 
-        for term in terms:
-            #print term
-            cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated WHERE Identifier = %s AND Term_Number = %s", (student,term))
-            subjects += [subject[0] for subject in cursor.fetchall()]
-            #print subjects
+            # create hash table with keys = terms, values = dictionary mapping class to ranking
+            # used for calculating errors
+            class_rankings_by_term = {}
 
-            # calculate "importance" of each class - we exclude current subjects from similarity comparisons
-            importance_ratings = {}
-            for cl in classes:
-                total = 1
-                for subject in subjects:
-                    if cl not in subjects:
-                        shared_number = int(shared_classes_table[class_table[cl]][class_table[subject]])
-                        total_number_subject = totals[subject]
-                        total *= math.exp(0.5 * shared_number / total_number_subject)
-                    else:
-                        #print cl
-                        break
-                importance_ratings[cl] = total       # record total for this class
+            terms = get_terms(student)
+            writer.writerow(terms[1:])
+            student_classes = []
 
-            importance_table[term] = importance_ratings
-            class_rankings_by_term[term] = sorted(importance_ratings, key=importance_ratings.get, reverse=True)
-            print class_rankings_by_term[term][0:7]
-            
-    calc_error(students, class_rankings_by_term)
+            for term in terms:
+                #print term
+                cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated WHERE Identifier = %s AND Term_Number = %s", (student,term))
+                student_classes += [c[0] for c in cursor.fetchall()]
+                #print subjects
 
-"""
-with open("cross_validation_results.csv", "wb") as f:
-    writer = csv.writer(f)
-    
-    for t in terms:
-        writer.writerow([t])
-        term_dict = importance_table[t]
-        writer.writerow(term_dict.keys())
-        term_vals = [term_dict[key] for key in term_dict.keys()]
-        writer.writerow(term_vals)
-"""
+                # calculate "importance" of each class - we exclude current subjects from similarity comparisons
+                importance_ratings = {}
+                for cl in classes:
+                    total = 1
+                    for s in student_classes:
+                        if cl not in student_classes:
+                            shared_number = int(shared_classes_table[class_table[cl]][class_table[s]])
+                            total_number_class = totals[s]
+
+                            if total_number_class != 0:
+                                total *= math.exp(0.5 * shared_number / total_number_class)
+
+                        else:
+                            break
+
+                    importance_ratings[cl] = total       # record total for this class
+
+                importance_table[term] = importance_ratings
+                class_rankings_by_term[term] = sorted(importance_ratings, key=importance_ratings.get, reverse=True)
+                #print class_rankings_by_term[term][0:7]    # prints top 8 recommendations
+                
+            writer.writerow(calc_error(student, terms, class_rankings_by_term))
+            writer.writerow([])
+
 
 """
-Calculate error of recommendations
+Calculate error of recommendations for one student
 Only applicable for recommendations of 2nd through last terms
 """
-def calc_error(students, class_rankings_by_term):
-    cursor = get_database_conn()
+def calc_error(student, terms, class_rankings_by_term):
+    #print "Calculating error..."
+    term_errors = []
 
-    for student in students:
-        print student
-        terms = get_terms(student)
+    for prev_term, cur_term in zip(terms, terms[1:]):
+        cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated WHERE Identifier = %s AND Term_Number = %s", (student, cur_term))
+        subjects = [subject[0] for subject in cursor.fetchall()]
+        num_subjects = len(subjects)
 
-        for term in terms[1:]:
-            print term
-            cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated WHERE Identifier = %s AND Term_Number = %s", (student,term))
-            subjects = [subject[0] for subject in cursor.fetchall()]
-            num_subjects = len(subjects)
-            print subjects
+        # error = [\sum_{x in C} max(0, (rank(x)/|C| - 1))] / |C|
+        error = 0
+        for subject in subjects:
+            for i in xrange(0, len(class_rankings_by_term[prev_term])):
+                if class_rankings_by_term[prev_term][i] == subject:
+                    rank = i+1   # rank is not zero-indexed
+                    break
 
-            # error = [\sum_{x in C} max(0, (rank(x)/|C| - 1))] / |C|
-            error = 0
-            for subject in subjects:
-                for i in xrange(0, len(class_rankings_by_term[term-1])):
-                    if class_rankings_by_term[term-1][i] == subject:
-                        rank = i+1   # rank is not zero-indexed
-                        break
+            factor = max(0, float(rank) / num_subjects - 1)
+            #info = "subject: %s, rank: %s, error: %s" % (subject, rank, factor)
+            error += factor
 
-                factor = str(max(0, float(rank) / num_subjects - 1))
-                print "subject: %s, rank: %s, factor: %s" % (subject, rank, factor)
-                error += max(0, float(rank / num_subjects))
-            error /= num_subjects
-            print "Error of term %s is %s" % (term, error)
+        error /= num_subjects
+        term_errors.append(error)
+
+    return term_errors
 
 
 if __name__ == "__main__":
-    make_recommendations()
+    generate_recommendations()
     sys.exit()
