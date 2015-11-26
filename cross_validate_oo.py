@@ -47,22 +47,19 @@ def create_shared_classes_table(class_table):
 
     for cls in classes:
         cls_pos = class_table[cls]
-        cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated WHERE Subject = %s", (cls,))
+        cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated WHERE Subject = %s AND Identifier <= 10001100", (cls,))
         students = [student[0] for student in cursor.fetchall()]
 
         for student in students:
-            if student not in target_students:
-                cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated WHERE Identifier = %s", (student,))
-                subjects = [subject[0] for subject in cursor.fetchall()]
+            cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated WHERE Identifier = %s", (student,))
+            subjects = [subject[0] for subject in cursor.fetchall()]
             
-                for subject in subjects:    # subjects are the classes that student has taken
-                    matrix[cls_pos][class_table[subject]] += 1     # goes down column, then across the row
+            for subject in subjects:    # subjects are the classes that student has taken
+                matrix[cls_pos][class_table[subject]] += 1     # goes down column, then across the row
 
     return matrix
 
-"""
-Create hash table for total number of students that took each class
-"""
+
 def create_totals_table(shared_classes_table):
     totals = {}
     count = 0
@@ -71,7 +68,6 @@ def create_totals_table(shared_classes_table):
         totals[classes[count]] = sum(row_num)
         count += 1
     return totals
-
 
 """
 Get number of terms taken by a student
@@ -91,7 +87,7 @@ def generate_recommendations():
     shared_classes_table = create_shared_classes_table(class_table)
     totals = create_totals_table(shared_classes_table)
 
-    with open("cv_errors.csv", "wb") as f:
+    with open("cv_errors_1100.csv", "wb") as f:
         writer = csv.writer(f)
 
         for student in target_students:
