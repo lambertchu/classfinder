@@ -30,8 +30,8 @@ classes = [cl[0] for cl in cursor.fetchall()]
 num_classes = len(classes)
 
 
-# get last X students - we should make this a parameter for the program
-cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated WHERE Identifier > 10001100")
+# get first X students - we should make this a parameter for the program
+cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated WHERE Identifier <= 10001100")
 target_students = [s[0] for s in cursor.fetchall()]
 print target_students
 
@@ -47,7 +47,7 @@ def create_shared_classes_table(class_table):
 
     for cls in classes:
         cls_pos = class_table[cls]
-        cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated WHERE Subject = %s AND Identifier <= 10001100", (cls,))
+        cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated WHERE Subject = %s AND Identifier > 10001100", (cls,))
         students = [student[0] for student in cursor.fetchall()]
 
         for student in students:
@@ -69,6 +69,7 @@ def create_totals_table(shared_classes_table):
         count += 1
     return totals
 
+
 """
 Get number of terms taken by a student
 """
@@ -78,8 +79,12 @@ def get_terms(student):
     terms = sorted([term[0] for term in cursor.fetchall()])
     return terms
 
-def generate_recommendations():
-    print "Generating recommendations..."
+
+"""
+
+"""
+def generate_recommendations_by_importance():
+    print "Generating recommendations by importance..."
 
     # create hash table with keys = classes and values = index in list
     class_table = {k:v for k, v in zip(classes, xrange(num_classes))}
@@ -87,7 +92,7 @@ def generate_recommendations():
     shared_classes_table = create_shared_classes_table(class_table)
     totals = create_totals_table(shared_classes_table)
 
-    with open("cv_errors_1100.csv", "wb") as f:
+    with open("cv_errors_first_100_normalized.csv", "wb") as f:
         writer = csv.writer(f)
 
         for student in target_students:
@@ -111,7 +116,7 @@ def generate_recommendations():
                 student_classes += [c[0] for c in cursor.fetchall()]
                 #print subjects
 
-                # calculate "importance" of each class - we exclude current subjects from similarity comparisons
+                # calculate "importance" of each class - we exclude current subjects from comparisons
                 importance_ratings = {}
                 for cl in classes:
                     total = 1
@@ -136,12 +141,12 @@ def generate_recommendations():
             writer.writerow([])
 
 
+
 """
 Calculate error of recommendations for one student
 Only applicable for recommendations of 2nd through last terms
 """
 def calc_error(student, terms, class_rankings_by_term):
-    #print "Calculating error..."
     term_errors = []
 
     for prev_term, cur_term in zip(terms, terms[1:]):
@@ -157,10 +162,12 @@ def calc_error(student, terms, class_rankings_by_term):
                     rank = i+1   # rank is not zero-indexed
                     break
 
-            factor = max(0, float(rank) / num_subjects - 1)
-            #info = "subject: %s, rank: %s, error: %s" % (subject, rank, factor)
+            # error_factor = (rank of class - total classes taken) / size of the universe
+            factor = max(0, (float(rank) - num_subjects) / (num_classes - num_subjects))
+
             error += factor
 
+        # find the average error for that student's term
         error /= num_subjects
         term_errors.append(error)
 
@@ -168,5 +175,5 @@ def calc_error(student, terms, class_rankings_by_term):
 
 
 if __name__ == "__main__":
-    generate_recommendations()
+    generate_recommendations_by_importance()
     sys.exit()
