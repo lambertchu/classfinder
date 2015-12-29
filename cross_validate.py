@@ -10,7 +10,7 @@ import sys
 import math
 import csv
 import psycopg2
-from scipy import spatial
+import generate_recommendations
 
 # connect to database
 try:
@@ -37,109 +37,13 @@ print target_students
 
 
 """
-Create 2D list with number of students that took each pair of classes
-"""
-def create_shared_classes_table(class_table):
-    print "Creating matrix of shared classes..."
-
-    # create nxn matrix with n = total number of classes
-    matrix = [[0 for x in xrange(num_classes)] for y in xrange(num_classes)]
-
-    for cls in classes:
-        cls_pos = class_table[cls]
-        cursor.execute("SELECT DISTINCT Identifier FROM enrollment_data_updated WHERE Subject = %s AND Identifier > 10001100", (cls,))
-        students = [student[0] for student in cursor.fetchall()]
-
-        for student in students:
-            cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated WHERE Identifier = %s", (student,))
-            subjects = [subject[0] for subject in cursor.fetchall()]
-            
-            for subject in subjects:    # subjects are the classes that student has taken
-                matrix[cls_pos][class_table[subject]] += 1     # goes down column, then across the row
-
-    return matrix
-
-
-def create_totals_table(shared_classes_table):
-    totals = {}
-    count = 0
-    for row in shared_classes_table:
-        row_num = [int(x) for x in row]
-        totals[classes[count]] = sum(row_num)
-        count += 1
-    return totals
-
-
-"""
-Get number of terms taken by a student
+Get number of terms that a given student has enrolled in
 """
 def get_terms(student):
     #cursor = get_database_conn()
     cursor.execute("SELECT DISTINCT Term_Number FROM enrollment_data_updated WHERE Identifier = %s", (student,))
     terms = sorted([term[0] for term in cursor.fetchall()])
     return terms
-
-
-"""
-
-"""
-def generate_recommendations_by_importance():
-    print "Generating recommendations by importance..."
-
-    # create hash table with keys = classes and values = index in list
-    class_table = {k:v for k, v in zip(classes, xrange(num_classes))}
-
-    shared_classes_table = create_shared_classes_table(class_table)
-    totals = create_totals_table(shared_classes_table)
-
-    with open("cv_errors_first_100_normalized.csv", "wb") as f:
-        writer = csv.writer(f)
-
-        for student in target_students:
-            writer.writerow([student])
-
-            # create table: key = term, value = importance ratings of classes for that student
-            # used for calculating recommendation ratings
-            importance_table = {}
-
-            # create hash table with keys = terms, values = dictionary mapping class to ranking
-            # used for calculating errors
-            class_rankings_by_term = {}
-
-            terms = get_terms(student)
-            writer.writerow(terms[1:])
-            student_classes = []
-
-            for term in terms:
-                #print term
-                cursor.execute("SELECT DISTINCT Subject FROM enrollment_data_updated WHERE Identifier = %s AND Term_Number = %s", (student,term))
-                student_classes += [c[0] for c in cursor.fetchall()]
-                #print subjects
-
-                # calculate "importance" of each class - we exclude current subjects from comparisons
-                importance_ratings = {}
-                for cl in classes:
-                    total = 1
-                    for s in student_classes:
-                        if cl not in student_classes:
-                            shared_number = int(shared_classes_table[class_table[cl]][class_table[s]])
-                            total_number_class = totals[s]
-
-                            if total_number_class != 0:
-                                total *= math.exp(0.5 * shared_number / total_number_class)
-
-                        else:
-                            break
-
-                    importance_ratings[cl] = total       # record total for this class
-
-                importance_table[term] = importance_ratings
-                class_rankings_by_term[term] = sorted(importance_ratings, key=importance_ratings.get, reverse=True)
-                #print class_rankings_by_term[term][0:7]    # prints top 8 recommendations
-                
-            writer.writerow(calc_error(student, terms, class_rankings_by_term))
-            writer.writerow([])
-
 
 
 """
@@ -175,5 +79,18 @@ def calc_error(student, terms, class_rankings_by_term):
 
 
 if __name__ == "__main__":
-    generate_recommendations_by_importance()
+    #with open("cv_errors_first_100_normalized.csv", "wb") as f:
+    with open("TEST.csv", "wb") as f:
+        writer = csv.writer(f)
+        
+        for student in target_students:
+            writer.writerow([student])
+
+            terms = get_terms(student)
+            writer.writerow(terms[1:])
+
+            class_rankings_by_term = generate_recommendations.generate_recommendations_by_importance(student, terms)
+
+            writer.writerow(calc_error(student, terms, class_rankings_by_term))
+            writer.writerow([])
     sys.exit()
