@@ -1,0 +1,11 @@
+<html>
+<!-- 	DISPLAY DATA FOR SUBJECT IN SUBJECT_INFO	-->
+    {% for pair in dictionary %}
+    	<ul>
+		{% for key, value in pair.items %} 
+  			<li>{{key}} - {{value}}</li>
+ 		{% endfor %}
+		</ul>
+	{% endfor %}
+
+</html>
