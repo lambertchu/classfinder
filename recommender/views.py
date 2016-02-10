@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from .forms import InfoForm
 import generate_recs
@@ -11,18 +12,23 @@ def index(request):
 """
 
 def index(request):
-    # if this is a POST request we need to process the form data
+    # process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
         form = InfoForm(request.POST)
-        
+
         # check whether it's valid:
         if form.is_valid():
             # process the data in form.cleaned_data as required
-            
+            major = form.cleaned_data['major']
+            cur_sem = form.cleaned_data['current_semester']
+            classes = form.cleaned_data['classes']
+            keywords = form.cleaned_data['keywords']
 
-            # redirect to a new URL:
-            return HttpResponseRedirect('results/')
+            recs = generate_recs.generate_recommendations_by_importance(major, cur_sem, classes, keywords)
+
+            return render(request, 'recommender/results.html', {'recs':recs[0:20]})
+            #return HttpResponseRedirect(reverse('recommender:results', args=recs[0:20],))
 
     # if a GET (or any other method) we'll create a blank form
     else:
@@ -32,4 +38,4 @@ def index(request):
 
 
 def results(request):
-	return render(request, 'recommender/form.html', {'form': form})
+	return render(request, 'recommender/results.html')
