@@ -1,0 +1,14 @@
+<html>
+	<h1>{{subject}}</h1>
+
+	<h2>Prerequisites: {{info.prerequisites}}</h2>
+	<h2>Instructors: {{info.instructors}}</h2>
+	<h2>Description: {{info.description}}</h2>
+
+	<ul>
+	{% for term, value in term_stats %}
+    	<li>{{term}} - {{value}}</li>
+	{% endfor %}
+	</ul>
+
+</html>

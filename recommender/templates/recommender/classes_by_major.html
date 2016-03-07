@@ -1,0 +1,10 @@
+<html>
+	<h1>Most Popular Classes</h1>
+
+	<!-- TODO: put the results into a table -->
+	<ol>
+	{% for cls in classes %}
+		<li>{{cls.0}} {{cls.1}} {{cls.2}}</li>
+	{% endfor %}
+	</ol>
+</html>
