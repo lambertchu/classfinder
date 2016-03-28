@@ -1,8 +1,11 @@
-<html>
+{% extends 'recommender/base.html' %}
+{% block nav-rec %}<strong class="nav-active">Recommendations</strong>{% endblock %}
+
+{% block content %}
 	<h1>Your Recommendations</h1>
 	<ol>
 	{% for rec in recs %}
-		<li>{{rec}}</li>
+		<li><a href="{% url 'recommender:subject_info' rec %}">{{ rec }}</a></li>
 	{% endfor %}
 	</ol>
-</html>
+{% endblock %}

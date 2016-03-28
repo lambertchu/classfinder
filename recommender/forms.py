@@ -9,4 +9,7 @@ class GetRecsForm(forms.Form):
 
 class GetPopularClassesForm(forms.Form):
 	major = forms.CharField(max_length=256)
-	current_semester = forms.ChoiceField(choices=[(x, x) for x in range(1, 17)])
+	semester = forms.ChoiceField(choices=[(x, x) for x in range(1, 17)])
+
+class GetSubjectForm(forms.Form):
+	subject = forms.CharField(max_length=256)	# TODO: divide by course and make dropdowns?

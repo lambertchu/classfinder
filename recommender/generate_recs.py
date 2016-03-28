@@ -1,7 +1,95 @@
 import math
 from django.core.cache import cache
+from django.db.models import Q
 from models import CompleteEnrollmentData, SharedClassesByMajor, SubjectInfo
 from gensim.models import Word2Vec
+
+
+
+"""
+Use network flow to determine unsatisfied requirements of a given major
+"""
+def get_new_classes(major, student_classes):
+    import json
+    from sets import Set
+    import networkx as nx
+    from networkx.algorithms.flow import edmonds_karp, build_residual_network
+
+    # Read requirements from file
+    return ["6.022", "6.023", "6.025", "6.035", "6.036", "6.045", "6.047", "6.049", "6.061", "6.101", "6.111", "6.115", "6.131", "6.141", "6.170", "6.172", "6.207", "6.301", "6.302", "6.502", "6.503", "6.602", "6.701", "6.717", "6.801", "6.802", "6.803", "6.804", "6.805", "6.806", "6.813", "6.814", "6.815", "6.816", "6.819", "6.835", "6.837", "6.857", "6.905", "16.36", "21M.359", "6.241", "6.251", "6.255", "6.262", "6.267", "6.334", "6.336", "6.341", "6.344", "6.345", "6.374", "6.375", "6.376", "6.436", "6.437", "6.438", "6.450", "6.453", "6.521", "6.522", "6.551", "6.555", "6.561", "6.631", "6.632", "6.634", "6.641", "6.685", "6.720", "6.728", "6.730", "6.774", "6.775", "6.777", "6.820", "6.823", "6.824", "6.828", "6.829", "6.830", "6.831", "6.832", "6.839", "6.840", "6.845", "6.850", "6.852", "6.854", "6.856", "6.857", "6.858", "6.863", "6.864", "6.866", "6.867", "6.869", "6.874", "6.875"]
+
+
+"""
+Create hash table that maps each class to the total number of students enrolled in that class
+"""
+def create_totals_table(all_classes, shared_classes_table):
+    totals = {}
+    count = 0
+    for row in shared_classes_table:
+        row_num = [int(x) for x in row]
+        totals[all_classes[count]] = sum(row_num)
+        count += 1
+    print totals
+    return totals
+
+
+"""
+TODO
+"""
+def create_shared_classes_table(major, class_table, all_classes):
+    num_classes = len(all_classes)
+    student_class_dict = {}
+    pairs = CompleteEnrollmentData.objects.filter(Q(major1=major) | Q(major2=major)).values_list("identifier","subject")
+    
+    for identifier, cls in pairs:
+        if identifier not in student_class_dict and cls in all_classes:
+            student_class_dict[identifier] = [cls]
+        elif cls in all_classes:
+            student_class_dict[identifier].append(cls)
+
+
+    matrix = [[0 for x in xrange(num_classes)] for y in xrange(num_classes)]
+    for student, classes in student_class_dict.iteritems():
+        index = 0
+        while index < len(classes):
+            sc1 = classes[index]
+            sc1_pos = class_table[sc1]
+            for sc2 in classes:
+                matrix[sc1_pos][class_table[sc2]] += 1
+            index += 1
+
+    return matrix
+
+
+
+"""
+Driver function to generate recommendations
+"""
+def generate_recommendations(major, cur_semester, student_classes, keywords, term_relevance = False):
+    student_classes_list = student_classes.split()
+    # new_classes = [x for x in classes if x not in student_classes_list]
+    new_classes = get_new_classes(major, student_classes_list)
+    all_classes = student_classes_list + new_classes
+    class_table = {k:v for k, v in zip(all_classes, xrange(len(all_classes)))}
+
+    try:
+        # NOTE: cached result must be changed when the student changes majors
+        shared_classes_table = cache.get('shared_classes_table')
+        if shared_classes_table == None:
+            # shared_classes_table = SharedClassesByMajor.objects.filter(major=maj).values_list("matrix", flat=True)[0]
+            shared_classes_table = create_shared_classes_table(major, class_table, all_classes)
+            cache.add('shared_classes_table', shared_classes_table, 300)    # store in cache
+            print "Added table"
+    except:
+        print "Error loading shared_classes_table"
+
+    cur_term = "term%s" % cur_semester
+    totals = create_totals_table(all_classes, shared_classes_table)
+    term_data = get_term_relevance_data(cur_term)       # SHOULD BE CACHED
+
+    importance_ratings = generate_recommendations_by_importance(new_classes, student_classes_list, shared_classes_table, class_table, totals, keywords, term_data, term_relevance = False)
+    sorted_importance_ratings = sorted(importance_ratings, key=importance_ratings.get, reverse=True)
+    return sorted_importance_ratings
 
 
 """
@@ -11,26 +99,10 @@ Recommendations are for the current semester and are based upon all classes take
 TODO: error handling for invalid class?
 TODO: some classes renamed (i.e. 18.440 to 18.600)
 """
-def generate_recommendations_by_importance(maj, cur_semester, student_classes, keywords, term_relevance = False):
-    try:
-        # NOTE: cached result must be changed when the student changes majors
-        shared_classes_table = cache.get('shared_classes_table')
-        if shared_classes_table == None:
-            shared_classes_table = SharedClassesByMajor.objects.filter(major=maj).values_list("matrix", flat=True)[0]
-            #cache.add('shared_classes_table', shared_classes_table, 300)    # store in cache
-    except:
-        print "Error loading shared_classes_table"
-
-    student_classes_list = student_classes.split()
-    new_classes = [x for x in classes if x not in student_classes_list]
-    cur_term = "term%s" % cur_semester
-    
-    totals = create_totals_table(shared_classes_table)
-    term_data = get_term_relevance_data(cur_term)       # SHOULD BE CACHED
-
-
+def generate_recommendations_by_importance(new_classes, student_classes_list, shared_classes_table, class_table, totals, keywords, term_data, term_relevance = False):
     # Calculate "importance" of each class that hasn't been taken by the student
     importance_ratings = {}
+
     for cl in new_classes:
         total = 1
         for s in student_classes_list:
@@ -70,8 +142,7 @@ def generate_recommendations_by_importance(maj, cur_semester, student_classes, k
 
         importance_ratings[cl] = total       # record total for this class
 
-    sorted_importance_ratings = sorted(importance_ratings, key=importance_ratings.get, reverse=True)
-    return sorted_importance_ratings
+    return importance_ratings
 
 
 
@@ -79,26 +150,12 @@ def generate_recommendations_by_importance(maj, cur_semester, student_classes, k
 Generate recommendations for a given student using the "similarity/Amazon" method.
 Recommendations are for the current semester and are based upon all classes taken by the student.
 """
-def generate_recommendations_by_similarity(maj, cur_semester, student_classes, keywords, term_relevance = False):
+def generate_recommendations_by_similarity(new_classes, class_table, student_classes_list, totals, shared_classes_table):
     from scipy import spatial
-    try:
-        # NOTE: cached result must be changed when the student changes majors
-        shared_classes_table = cache.get('shared_classes_table')
-        if shared_classes_table == None:
-            shared_classes_table = SharedClassesByMajor.objects.filter(major=maj).values_list("matrix", flat=True)[0]
-            #cache.add('shared_classes_table', shared_classes_table, 300)    # store in cache
-    except:
-        print "Error loading shared_classes_table"
 
-    cur_term = "term%s" % cur_semester
     MAJOR_TRIM = '6.'
-
-    student_classes_list = [str(x) for x in student_classes.split()]
     relevant_classes = [str(x) for x in classes if (str(x).startswith(MAJOR_TRIM) or str(x) in student_classes_list)]
     num_rel_classes = len(relevant_classes)
-
-    # Create hash table with keys = classes and values = index in list
-    class_table = {k:v for k, v in zip(relevant_classes, xrange(num_rel_classes))}
 
     # Create nxn similarity table
     similarity_table = [[0 for x in xrange(num_rel_classes)] for y in xrange(num_rel_classes)]
@@ -180,21 +237,6 @@ def keyword_similarity(keywords):
     return sorted_sim_ratings
 
 
-
-"""
-Create hash table that maps each class to the total number of students enrolled in that class
-"""
-def create_totals_table(shared_classes_table):
-    totals = {}
-    count = 0
-    for row in shared_classes_table:
-        row_num = [int(x) for x in row]
-        totals[classes[count]] = sum(row_num)
-        count += 1
-    return totals
-
-
-
 """
 The following is executed upon import
 """
@@ -203,11 +245,6 @@ try:
     classes = CompleteEnrollmentData.objects.order_by().values_list("subject", flat=True).distinct()
 except:
     print "Error loading classes"
-
-num_classes = len(classes)
-
-# Create hash table with keys = classes and values = index in list
-class_table = {k:v for k, v in zip(classes, xrange(num_classes))}
 
 
 # # Load Word2Vec model for keyword matching

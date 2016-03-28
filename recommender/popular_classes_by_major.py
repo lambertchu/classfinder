@@ -18,7 +18,8 @@ def get_most_popular_classes(major, term):
 	sorted_subjects = sorted(subjects_dict, key=subjects_dict.get, reverse=True)
 
 	classes = []
-	for subject in sorted_subjects[0:20]:
+	num_on_page = 20
+	for subject in sorted_subjects[0:num_on_page]:
 		try:
 			title = SubjectInfo.objects.filter(subject=subject).values_list("title", flat=True)[0]
 		except:

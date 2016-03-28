@@ -1,0 +1,10 @@
+{% extends 'recommender/base.html' %}
+{% block nav-home %}<strong class="nav-active">Home</strong>{% endblock %}
+{% block content %}
+	<h1>Welcome to ClassFinder</h1>
+	<a href="{% url 'recommender:recommendations' %}">Recommendations</a>
+	<br>
+	<a href="{% url 'recommender:major' %}">Stats By Major</a>
+	<br>
+	<a href="{% url 'recommender:subject_info' %}">Stats By Class</a>
+{% endblock %}

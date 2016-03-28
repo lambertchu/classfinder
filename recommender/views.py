@@ -1,14 +1,14 @@
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
-from .forms import GetRecsForm, GetPopularClassesForm
+from .forms import GetRecsForm, GetPopularClassesForm, GetSubjectForm
 
 
-#def index(request):
+def index(request):
+    return render(request, 'recommender/index.html')
 
 
-
-def get_recommendations(request):
+def recommendations(request):
     import generate_recs
 
     # process the form data
@@ -24,7 +24,9 @@ def get_recommendations(request):
             classes = form.cleaned_data['classes']
             keywords = form.cleaned_data['keywords']
 
-            recs = generate_recs.generate_recommendations_by_similarity(major, cur_sem, classes, keywords)
+
+            recs = generate_recs.generate_recommendations(major, cur_sem, classes, keywords)
+            # recs = generate_recs.generate_recommendations_by_similarity(major, cur_sem, classes, keywords)
             # recs = generate_recs.generate_recommendations_by_importance(major, cur_sem, classes, keywords)
             # recs = generate_recs.keyword_similarity(keywords)
 
@@ -37,7 +39,7 @@ def get_recommendations(request):
     return render(request, 'recommender/form.html', {'form': form})
 
 
-def get_popular_classes_by_major(request):
+def popular_classes_by_major(request):
     import popular_classes_by_major
 
     # process the form data
@@ -49,27 +51,79 @@ def get_popular_classes_by_major(request):
         if form.is_valid():
             # process the data in form.cleaned_data as required
             major = form.cleaned_data['major']
-            term = form.cleaned_data['current_semester']
-
+            term = form.cleaned_data['semester']
             classes = popular_classes_by_major.get_most_popular_classes(major, term)
 
-            return render(request, 'recommender/classes_by_major.html', {'classes':classes})
-        # if a GET (or any other method) we'll create a blank form
-    
+            # Create bar graph
+            xdata = []
+            ydata = []
+            for cls in classes:
+                xdata.append((cls[0], cls[1]))
+                ydata.append(cls[2])
+
+            chartdata = {'x': xdata, 'y': ydata}
+            charttype = 'discreteBarChart'
+            chartcontainer = 'discretebarchart_container'
+            data = {
+                'major': major,
+                'term': term,
+                'charttype': charttype,
+                'chartdata': chartdata,
+                'chartcontainer': chartcontainer,
+                'extra': {
+                    'x_is_date': False,
+                    'x_axis_format': '',
+                    'tag_script_js': True,
+                    'jquery_on_ready': False,
+                }
+            }
+            return render(request, 'recommender/classes_by_major.html', data)
+
+    # if a GET (or any other method) we'll create a blank form
     else:
         form = GetPopularClassesForm()
 
     return render(request, 'recommender/form.html', {'form': form})
 
 
-def index(request):
+def subject_info(request, subject=None):
     import subject_info
 
-    subject = '6.006'
+    form = GetSubjectForm()
+    if request.method == 'POST':
+        form = GetSubjectForm(request.POST)
+
+        if form.is_valid():
+            subject = form.cleaned_data['subject']
+
+    if subject == None:
+        return render(request, 'recommender/subject_info_page.html', {'form': form})
+
     info = subject_info.get_online_info(subject)
     term_stats = subject_info.get_term_stats(subject)
-    return render(request, 'recommender/subject_info_page.html', {'subject':subject, 'info':info, 'term_stats':term_stats})
 
+    # Create pie chart
+    xdata = []
+    ydata = []
+    for term, value in term_stats:
+        xdata.append(term)
+        ydata.append(value)
 
-def results(request):
-	return render(request, 'recommender/results.html')
+    chartdata = {'x': xdata, 'y': ydata}
+    charttype = 'discreteBarChart'
+    chartcontainer = 'discretebarchart_container'
+    data = {
+        'form': form,
+        'subject': subject,
+        'info': info,
+        'charttype': charttype,
+        'chartdata': chartdata,
+        'chartcontainer': chartcontainer,
+        'extra': {
+            'x_is_date': False,
+            'x_axis_format': '',
+            'tag_script_js': True,
+            'jquery_on_ready': False,
+        }
+    }
+    return render(request, 'recommender/subject_info_page.html', data)

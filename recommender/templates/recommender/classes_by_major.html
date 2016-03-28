@@ -1,10 +1,14 @@
-<html>
-	<h1>Most Popular Classes</h1>
+{% extends 'recommender/base.html' %}
+{% block nav-major %}<strong class="nav-active">Stats By Major</strong>{% endblock %}
 
-	<!-- TODO: put the results into a table -->
-	<ol>
-	{% for cls in classes %}
-		<li>{{cls.0}} {{cls.1}} {{cls.2}}</li>
-	{% endfor %}
-	</ol>
-</html>
+{% block content %}
+{% load nvd3_tags %}
+<head>
+    {% include_chart_jscss %}
+    {% load_chart charttype chartdata chartcontainer extra %}
+</head>
+<body>
+    <h1>Most Popular Classes in {{ major }} for Semester {{ term }}</h1>
+    {% include_container chartcontainer 400 600 %}
+</body>
+{% endblock %}

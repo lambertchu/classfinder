@@ -1,14 +1,29 @@
-<html>
-	<h1>{{subject}}</h1>
+{% extends 'recommender/base.html' %}
+{% block nav-subject %}<strong class="nav-active">Stats By Class</strong>{% endblock %}
+{% block content %}
+	{% load nvd3_tags %}
+	<head>
+		{% if info != None %}
+		    {% include_chart_jscss %}
+		    {% load_chart charttype chartdata chartcontainer extra %}
+		{% else %}
+			<h1>Search for information about a subject</h1>
+		{% endif %}
+	</head>
 
-	<h2>Prerequisites: {{info.prerequisites}}</h2>
-	<h2>Instructors: {{info.instructors}}</h2>
-	<h2>Description: {{info.description}}</h2>
+	<body>
+		<form class="formStyle" role="form" action="" method="post">
+		    {% csrf_token %}
+		    {{ form.as_p }}
+		    <button class="inlineButton" type="submit">Go</button>
+		</form>
 
-	<ul>
-	{% for term, value in term_stats %}
-    	<li>{{term}} - {{value}}</li>
-	{% endfor %}
-	</ul>
-
-</html>
+		{% if info != None %}
+			<h1>{{subject}}</h1>
+			<p>Prerequisites: {{info.prerequisites}}</p>
+			<p>Instructors: {{info.instructors}}</p>
+			<p>Description: {{info.description}}</p>
+			{% include_container chartcontainer 400 600 %}
+		{% endif %}
+	</body>
+{% endblock %}

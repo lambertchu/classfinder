@@ -15,8 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+import mit
 
 urlpatterns = [
     url(r'^recommender/', include('recommender.urls', namespace='recommender')),
     url(r'^admin/', admin.site.urls),
+    url(r'^accounts/login/', mit.scripts_login, name='login'),
 ]

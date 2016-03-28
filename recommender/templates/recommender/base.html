@@ -1,0 +1,19 @@
+{% load staticfiles %}
+<link href="http://fonts.googleapis.com/css?family=Didact+Gothic" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="{% static 'recommender/style.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'recommender/fonts.css' %}" />
+
+
+<div id="menu">
+<ul>
+    <li>{% block nav-home %}<a href="{% url 'recommender:index' %}">Home</a>{% endblock %}</li>
+    <li>{% block nav-rec %}<a href="{% url 'recommender:recommendations' %}">Recommendations</a>{% endblock %}</li>
+    <li>{% block nav-major %}<a href="{% url 'recommender:major' %}">Stats By Major</a>{% endblock %}</li>
+    <li>{% block nav-subject %}<a href="{% url 'recommender:subject_info' %}">Stats By Class</a>{% endblock %}</li>
+</ul>
+</div>
+
+<div class="block">
+{% block content %}
+{% endblock %}
+</div>
