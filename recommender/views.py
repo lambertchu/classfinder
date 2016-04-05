@@ -30,7 +30,7 @@ def recommendations(request):
             # recs = generate_recs.generate_recommendations_by_importance(major, cur_sem, classes, keywords)
             # recs = generate_recs.keyword_similarity(keywords)
 
-            return render(request, 'recommender/recommendations.html', {'recs':recs[0:20]})
+            return render(request, 'recommender/recommendations.html', {'recs':recs[0:50]})
 
     # if a GET (or any other method) we'll create a blank form
     else:
@@ -99,7 +99,13 @@ def subject_info(request, subject=None):
     if subject == None:
         return render(request, 'recommender/subject_info_page.html', {'form': form})
 
-    info = subject_info.get_online_info(subject)
+    try:
+        info = subject_info.get_online_info(subject)
+    except:
+        import generate_recs
+        results = generate_recs.keyword_similarity(subject)
+        return render(request, 'recommender/subject_search_results.html', {'results': results})
+
     term_stats = subject_info.get_term_stats(subject)
 
     # Create pie chart

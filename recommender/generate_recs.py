@@ -11,13 +11,12 @@ Use network flow to determine unsatisfied requirements of a given major
 """
 def get_new_classes(major, student_classes):
     import json
-    from sets import Set
-    import networkx as nx
-    from networkx.algorithms.flow import edmonds_karp, build_residual_network
+    with open('/Users/lambertchu/Documents/MIT/SuperUROP/Application/Web/classfinder/recommender/static/recommender/test_requirements.json') as f:    
+        data = json.load(f)
 
-    # Read requirements from file
-    return ["6.022", "6.023", "6.025", "6.035", "6.036", "6.045", "6.047", "6.049", "6.061", "6.101", "6.111", "6.115", "6.131", "6.141", "6.170", "6.172", "6.207", "6.301", "6.302", "6.502", "6.503", "6.602", "6.701", "6.717", "6.801", "6.802", "6.803", "6.804", "6.805", "6.806", "6.813", "6.814", "6.815", "6.816", "6.819", "6.835", "6.837", "6.857", "6.905", "16.36", "21M.359", "6.241", "6.251", "6.255", "6.262", "6.267", "6.334", "6.336", "6.341", "6.344", "6.345", "6.374", "6.375", "6.376", "6.436", "6.437", "6.438", "6.450", "6.453", "6.521", "6.522", "6.551", "6.555", "6.561", "6.631", "6.632", "6.634", "6.641", "6.685", "6.720", "6.728", "6.730", "6.774", "6.775", "6.777", "6.820", "6.823", "6.824", "6.828", "6.829", "6.830", "6.831", "6.832", "6.839", "6.840", "6.845", "6.850", "6.852", "6.854", "6.856", "6.857", "6.858", "6.863", "6.864", "6.866", "6.867", "6.869", "6.874", "6.875"]
-
+    major_classes = data[major]
+    new_classes = [x for x in major_classes if x not in student_classes]
+    return new_classes
 
 """
 Create hash table that maps each class to the total number of students enrolled in that class
@@ -29,7 +28,7 @@ def create_totals_table(all_classes, shared_classes_table):
         row_num = [int(x) for x in row]
         totals[all_classes[count]] = sum(row_num)
         count += 1
-    print totals
+    # print totals
     return totals
 
 
@@ -72,16 +71,18 @@ def generate_recommendations(major, cur_semester, student_classes, keywords, ter
     all_classes = student_classes_list + new_classes
     class_table = {k:v for k, v in zip(all_classes, xrange(len(all_classes)))}
 
-    try:
-        # NOTE: cached result must be changed when the student changes majors
-        shared_classes_table = cache.get('shared_classes_table')
-        if shared_classes_table == None:
-            # shared_classes_table = SharedClassesByMajor.objects.filter(major=maj).values_list("matrix", flat=True)[0]
-            shared_classes_table = create_shared_classes_table(major, class_table, all_classes)
-            cache.add('shared_classes_table', shared_classes_table, 300)    # store in cache
-            print "Added table"
-    except:
-        print "Error loading shared_classes_table"
+    shared_classes_table = create_shared_classes_table(major, class_table, all_classes)
+
+    # try:
+    #     # NOTE: cached result must be changed when the student changes majors
+    #     shared_classes_table = cache.get('shared_classes_table')
+    #     if shared_classes_table == None:
+    #         # shared_classes_table = SharedClassesByMajor.objects.filter(major=maj).values_list("matrix", flat=True)[0]
+    #         shared_classes_table = create_shared_classes_table(major, class_table, all_classes)
+    #         cache.add('shared_classes_table', shared_classes_table, 300)    # store in cache
+    #         print "Added table"
+    # except:
+    #     print "Error loading shared_classes_table"
 
     cur_term = "term%s" % cur_semester
     totals = create_totals_table(all_classes, shared_classes_table)
@@ -218,19 +219,31 @@ def get_term_relevance_data(cur_term):
 Find classes that are most similar to the given keywords
 """
 def keyword_similarity(keywords):
+    stop_list = set('for a of also by the and to in on as at from with but how about such eg ie'.split())   # remove common words
     sim_ratings = {}
-    for cl in classes:
+    for cl in mit_classes:
         try:
-            class_keywords = SubjectInfo.objects.filter(subject=cl).values_list("keywords", flat=True)[0]
+            words = SubjectInfo.objects.filter(subject=cl).values_list("keywords", flat=True)[0]
+            class_keywords = [x for x in words if x not in stop_list]
         except:
+            sim_ratings[cl] = 0
             continue
 
         if len(class_keywords) == 0:
             sim_ratings[cl] = 0
+            continue
 
-        else:
-            sim_rating = w2v_model.n_similarity(class_keywords, keywords.split())
-            sim_ratings[cl] = sim_rating
+        # Get title of class
+        title_list = SubjectInfo.objects.filter(subject=cl).values_list("title", flat=True)[0].split()
+        title_keywords = [x for x in title_list if x not in stop_list]
+
+        keywords_list = keywords.split()
+        sim_rating = w2v_model.n_similarity(class_keywords, keywords_list)
+        try:
+            sim_rating += 2*w2v_model.n_similarity(title_keywords, keywords_list)
+        except:
+            print cl
+        sim_ratings[cl] = sim_rating
 
     # sort and return
     sorted_sim_ratings = sorted(sim_ratings, key=sim_ratings.get, reverse=True)
@@ -245,6 +258,12 @@ try:
     classes = CompleteEnrollmentData.objects.order_by().values_list("subject", flat=True).distinct()
 except:
     print "Error loading classes"
+
+mit_classes = []
+for cl in classes:
+    if cl == None or cl[0:2] == "HA" or cl[0:2] == "MC" or (cl[0:1] == "W" and cl[0:3] != "WGS"):
+        continue
+    mit_classes.append(cl)
 
 
 # # Load Word2Vec model for keyword matching

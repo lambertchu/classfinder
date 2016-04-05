@@ -1,0 +1,18 @@
+{% extends 'recommender/base.html' %}
+{% block nav-subject %}<strong class="nav-active">Stats By Class</strong>{% endblock %}
+{% block content %}
+	{% load nvd3_tags %}
+	<body>
+		<form class="formStyle" role="form" action="" method="post">
+		    {% csrf_token %}
+		    {{ form.as_p }}
+		    <button class="inlineButton" type="submit">Go</button>
+		</form>
+
+		<ol>
+			{% for result in results[:20] %}
+				<li><a href="{% url 'recommender:subject_info' result %}">{{ result }}</a></li>
+			{% endfor %}
+		</ol>
+	</body>
+{% endblock %}
