@@ -9,8 +9,9 @@
 		    <button class="inlineButton" type="submit">Go</button>
 		</form>
 
+		<h1>Your Recommendations</h1>
 		<ol>
-			{% for result in results[:20] %}
+			{% for result in results %}
 				<li><a href="{% url 'recommender:subject_info' result %}">{{ result }}</a></li>
 			{% endfor %}
 		</ol>

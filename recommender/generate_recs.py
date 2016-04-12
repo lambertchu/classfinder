@@ -2,21 +2,8 @@ import math
 from django.core.cache import cache
 from django.db.models import Q
 from models import CompleteEnrollmentData, SharedClassesByMajor, SubjectInfo
-from gensim.models import Word2Vec
+import get_new_classes
 
-
-
-"""
-Use network flow to determine unsatisfied requirements of a given major
-"""
-def get_new_classes(major, student_classes):
-    import json
-    with open('/Users/lambertchu/Documents/MIT/SuperUROP/Application/Web/classfinder/recommender/static/recommender/test_requirements.json') as f:    
-        data = json.load(f)
-
-    major_classes = data[major]
-    new_classes = [x for x in major_classes if x not in student_classes]
-    return new_classes
 
 """
 Create hash table that maps each class to the total number of students enrolled in that class
@@ -28,18 +15,18 @@ def create_totals_table(all_classes, shared_classes_table):
         row_num = [int(x) for x in row]
         totals[all_classes[count]] = sum(row_num)
         count += 1
-    # print totals
     return totals
 
 
 """
-TODO
+Create a matrix that records the number of students that took each pair of classes
 """
 def create_shared_classes_table(major, class_table, all_classes):
     num_classes = len(all_classes)
     student_class_dict = {}
     pairs = CompleteEnrollmentData.objects.filter(Q(major1=major) | Q(major2=major)).values_list("identifier","subject")
     
+    # Only look at students declared in the given major
     for identifier, cls in pairs:
         if identifier not in student_class_dict and cls in all_classes:
             student_class_dict[identifier] = [cls]
@@ -66,8 +53,7 @@ Driver function to generate recommendations
 """
 def generate_recommendations(major, cur_semester, student_classes, keywords, term_relevance = False):
     student_classes_list = student_classes.split()
-    # new_classes = [x for x in classes if x not in student_classes_list]
-    new_classes = get_new_classes(major, student_classes_list)
+    new_classes = get_new_classes.get_classes_to_take(major, student_classes)
     all_classes = student_classes_list + new_classes
     class_table = {k:v for k, v in zip(all_classes, xrange(len(all_classes)))}
 
@@ -213,64 +199,3 @@ def get_term_relevance_data(cur_term):
         term_data[sub["subject"]] = time_modifier
         
     return term_data
-
-
-"""
-Find classes that are most similar to the given keywords
-"""
-def keyword_similarity(keywords):
-    stop_list = set('for a of also by the and to in on as at from with but how about such eg ie'.split())   # remove common words
-    sim_ratings = {}
-    for cl in mit_classes:
-        try:
-            words = SubjectInfo.objects.filter(subject=cl).values_list("keywords", flat=True)[0]
-            class_keywords = [x for x in words if x not in stop_list]
-        except:
-            sim_ratings[cl] = 0
-            continue
-
-        if len(class_keywords) == 0:
-            sim_ratings[cl] = 0
-            continue
-
-        # Get title of class
-        title_list = SubjectInfo.objects.filter(subject=cl).values_list("title", flat=True)[0].split()
-        title_keywords = [x for x in title_list if x not in stop_list]
-
-        keywords_list = keywords.split()
-        sim_rating = w2v_model.n_similarity(class_keywords, keywords_list)
-        try:
-            sim_rating += 2*w2v_model.n_similarity(title_keywords, keywords_list)
-        except:
-            print cl
-        sim_ratings[cl] = sim_rating
-
-    # sort and return
-    sorted_sim_ratings = sorted(sim_ratings, key=sim_ratings.get, reverse=True)
-    return sorted_sim_ratings
-
-
-"""
-The following is executed upon import
-"""
-# Get list of all classes
-try:
-    classes = CompleteEnrollmentData.objects.order_by().values_list("subject", flat=True).distinct()
-except:
-    print "Error loading classes"
-
-mit_classes = []
-for cl in classes:
-    if cl == None or cl[0:2] == "HA" or cl[0:2] == "MC" or (cl[0:1] == "W" and cl[0:3] != "WGS"):
-        continue
-    mit_classes.append(cl)
-
-
-# # Load Word2Vec model for keyword matching
-# try:
-#     w2v_model = cache.get('word2vec_model')
-#     if w2v_model == None:
-#         w2v_model = Word2Vec.load_word2vec_format('/Users/lambertchu/Documents/MIT/SuperUROP/NLP_Data/GoogleNews-vectors-negative300.bin', binary=True)
-#         #cache.add('word2vec_model', w2v_model, 600)    # store in cache
-# except:
-#     print "Error loading Word2Vec model"

@@ -8,7 +8,10 @@
     {% load_chart charttype chartdata chartcontainer extra %}
 </head>
 <body>
-    <h1>Most Popular Classes in {{ major }} for Semester {{ term }}</h1>
+    <h1>Most Popular Classes in {{ major }}</h1> 
+    <h1>for Semester {{ term }}</h1>
+    <div class = "major_stats_container">
     {% include_container chartcontainer 400 600 %}
+    </div>
 </body>
 {% endblock %}

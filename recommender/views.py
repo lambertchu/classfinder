@@ -41,6 +41,7 @@ def recommendations(request):
 
 def popular_classes_by_major(request):
     import popular_classes_by_major
+    import create_graphs
 
     # process the form data
     if request.method == 'POST':
@@ -54,30 +55,11 @@ def popular_classes_by_major(request):
             term = form.cleaned_data['semester']
             classes = popular_classes_by_major.get_most_popular_classes(major, term)
 
-            # Create bar graph
-            xdata = []
-            ydata = []
-            for cls in classes:
-                xdata.append((cls[0], cls[1]))
-                ydata.append(cls[2])
 
-            chartdata = {'x': xdata, 'y': ydata}
-            charttype = 'discreteBarChart'
-            chartcontainer = 'discretebarchart_container'
-            data = {
-                'major': major,
-                'term': term,
-                'charttype': charttype,
-                'chartdata': chartdata,
-                'chartcontainer': chartcontainer,
-                'extra': {
-                    'x_is_date': False,
-                    'x_axis_format': '',
-                    'tag_script_js': True,
-                    'jquery_on_ready': False,
-                }
-            }
+            # Create horizontal bar graph
+            data = create_graphs.create_horizontal_bar_graph(major, term, classes)
             return render(request, 'recommender/classes_by_major.html', data)
+
 
     # if a GET (or any other method) we'll create a blank form
     else:
@@ -86,50 +68,29 @@ def popular_classes_by_major(request):
     return render(request, 'recommender/form.html', {'form': form})
 
 
-def subject_info(request, subject=None):
+def subject_info(request, response=None):
     import subject_info
+    import create_graphs
 
     form = GetSubjectForm()
     if request.method == 'POST':
         form = GetSubjectForm(request.POST)
 
         if form.is_valid():
-            subject = form.cleaned_data['subject']
+            response = form.cleaned_data['subject']
 
-    if subject == None:
+    if response == None:
         return render(request, 'recommender/subject_info_page.html', {'form': form})
 
-    try:
-        info = subject_info.get_online_info(subject)
-    except:
-        import generate_recs
-        results = generate_recs.keyword_similarity(subject)
+    info = subject_info.get_online_info(response)
+    if info == None:
+        # TODO: only do this for English words. Invalid classes should throw error
+        import keyword_similarity
+        results = keyword_similarity.keyword_similarity(response)
         return render(request, 'recommender/subject_search_results.html', {'results': results})
 
-    term_stats = subject_info.get_term_stats(subject)
+    term_stats = subject_info.get_term_stats(response)
 
-    # Create pie chart
-    xdata = []
-    ydata = []
-    for term, value in term_stats:
-        xdata.append(term)
-        ydata.append(value)
-
-    chartdata = {'x': xdata, 'y': ydata}
-    charttype = 'discreteBarChart'
-    chartcontainer = 'discretebarchart_container'
-    data = {
-        'form': form,
-        'subject': subject,
-        'info': info,
-        'charttype': charttype,
-        'chartdata': chartdata,
-        'chartcontainer': chartcontainer,
-        'extra': {
-            'x_is_date': False,
-            'x_axis_format': '',
-            'tag_script_js': True,
-            'jquery_on_ready': False,
-        }
-    }
+    # Create bar graph
+    data = create_graphs.create_bar_graph(term_stats, form, response, info)
     return render(request, 'recommender/subject_info_page.html', data)
