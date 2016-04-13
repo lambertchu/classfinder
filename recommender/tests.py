@@ -1,5 +1,6 @@
 from django.test import TestCase
 from generate_recs import calculate_rating
+import get_new_classes
 
 class GenerateRecsTestCase(TestCase):
 	def setUp(self):
@@ -41,4 +42,77 @@ class GenerateRecsTestCase(TestCase):
 		self.assertTrue(comp3)
 
 
-	
+
+class GetClassesToTakeTestCase(TestCase):
+	def setUp(self):
+		pass
+
+	def test_get_classes_to_take_1(self):
+		taken = ['6.01', '6.042', '6.UAR']
+		reqs = ['6.01', [1, '6.UAR', [2, '6.UAT', '6.UAP']]]
+		new_classes = get_new_classes.get_classes_to_take(None, taken, reqs)
+
+		self.assertEqual(new_classes, [])
+
+
+	def test_get_classes_to_take_2(self):
+		taken = ['6.01', '6.042']
+		reqs = ['6.01', [1, '6.UAR', [2, '6.UAT', '6.UAP']]]
+		new_classes = get_new_classes.get_classes_to_take(None, taken, reqs)
+
+		self.assertTrue('6.UAR' in new_classes)
+		self.assertTrue('6.UAT' in new_classes)
+		self.assertTrue('6.UAP' in new_classes)
+		self.assertTrue('6.01' not in new_classes)
+
+
+	def test_get_classes_to_take_3(self):
+		taken = ['6.046', '6.01', '6.042']
+		reqs = [[3, "6.033", [1, "6.034", "6.036"], [1, "6.045", "6.046"]]]
+		new_classes = get_new_classes.get_classes_to_take(None, taken, reqs)
+
+		self.assertTrue('6.033' in new_classes)
+		self.assertTrue('6.034' in new_classes)
+		self.assertTrue('6.036' in new_classes)
+		self.assertTrue('6.045' not in new_classes)
+		self.assertTrue('6.046' not in new_classes)
+
+
+	def test_get_classes_to_take_double_nested_1(self):
+		taken = ['2.02A', '1.00', '6.000', '99.99']
+		reqs = [[1, [2, "2.001", [1, "2.02A", "2.002"]], [2, "2.01", [1, "2.02A", "2.02B", "2.002"]]]]
+
+		new_classes = get_new_classes.get_classes_to_take(None, taken, reqs)
+
+		self.assertTrue('2.001' in new_classes)
+		self.assertTrue('2.01' in new_classes)
+		self.assertTrue('2.02A' not in new_classes)
+		self.assertTrue('2.002' not in new_classes)
+		self.assertTrue('2.02B' not in new_classes)
+
+
+	def test_get_classes_to_take_double_nested_2(self):
+		taken = ['2.01', '1.00', '6.000', '99.99']
+		reqs = [[1, [2, "2.001", [1, "2.02A", "2.002"]], [2, "2.01", [1, "2.02A", "2.02B", "2.002"]]]]
+
+		new_classes = get_new_classes.get_classes_to_take(None, taken, reqs)
+
+		self.assertTrue('2.001' in new_classes)
+		self.assertTrue('2.002' in new_classes)
+		self.assertTrue('2.02A' in new_classes)
+		self.assertTrue('2.02B' in new_classes)
+		self.assertTrue('2.01' not in new_classes)
+
+
+	def test_get_classes_to_take_double_nested_3(self):
+		taken = ['2.001', '2.02A', '6.000', '99.99']
+		reqs = [[2, [2, "2.001", [1, "2.02A", "2.002"]], [2, "2.01", [1, "2.02A", "2.02B", "2.002"]]]]
+
+		new_classes = get_new_classes.get_classes_to_take(None, taken, reqs)
+
+		self.assertTrue('2.001' not in new_classes)
+		self.assertTrue('2.002' not in new_classes)
+		self.assertTrue('2.02A' not in new_classes)
+		self.assertTrue('2.02B' not in new_classes)
+		self.assertTrue('2.01' in new_classes)
+
