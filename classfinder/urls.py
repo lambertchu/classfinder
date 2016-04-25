@@ -20,5 +20,7 @@ import mit
 urlpatterns = [
     url(r'^recommender/', include('recommender.urls', namespace='recommender')),
     url(r'^admin/', admin.site.urls),
-    url(r'^accounts/login/', mit.scripts_login, name='login'),
+    url(r'^login/$', 'django.contrib.auth.views.login'),
+    url(r'^logout/$', 'django.contrib.auth.views.logout'),
+    # url(r'^accounts/login/', mit.scripts_login, name='login'),
 ]

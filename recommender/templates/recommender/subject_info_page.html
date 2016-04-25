@@ -4,35 +4,33 @@
 
 
 <!-- Modals: http://www.abidibo.net/blog/2014/05/26/how-implement-modal-popup-django-forms-bootstrap/ -->
+{% load nvd3_tags %}
+<head>
+	{% if info != None %}
+	    {% include_chart_jscss %}
+	    {% load_chart charttype chartdata chartcontainer extra %}
+	{% else %}
+		<h1>Search for information about a subject</h1>
+	{% endif %}
+</head>
 
+<body>
+	<form role="form" action="" method="post">
+	    {% csrf_token %}
+	    {{ form.as_p }}
+	    <button class="inline_button" type="submit">Go</button>
+	</form>
 
-	{% load nvd3_tags %}
-	<head>
-		{% if info != None %}
-		    {% include_chart_jscss %}
-		    {% load_chart charttype chartdata chartcontainer extra %}
-		{% else %}
-			<h1>Search for information about a subject</h1>
-		{% endif %}
-	</head>
-
-	<body>
-		<form class="formStyle" role="form" action="" method="post">
-		    {% csrf_token %}
-		    {{ form.as_p }}
-		    <button class="inlineButton" type="submit">Go</button>
-		</form>
-
-		{% if info != None %}
-			<h1>{{subject}}</h1>
-			<div class = "subject_info_container">
-			<p>Title: {{info.title}}</p>
-			<p>Prerequisites: {{info.prerequisites}}</p>
-			<p>Units: {{info.units}}</p>
-			<p>Instructors: {{info.instructors}}</p>
-			<p>Description: {{info.description}}</p>
-			{% include_container chartcontainer 400 600 %}
-			</div>
-		{% endif %}
-	</body>
+	{% if info != None %}
+		<h1>{{subject}}</h1>
+		<div class = "subject_info_container">
+		<p>Title: {{info.title}}</p>
+		<p>Prerequisites: {{info.prerequisites}}</p>
+		<p>Units: {{info.units}}</p>
+		<p>Instructors: {{info.instructors}}</p>
+		<p>Description: {{info.description}}</p>
+		{% include_container chartcontainer 400 600 %}
+		</div>
+	{% endif %}
+</body>
 {% endblock %}

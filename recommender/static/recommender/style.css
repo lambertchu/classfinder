@@ -34,12 +34,36 @@
 	    padding-left: 25%;
 	}
 
-/*	.inlineButton {
+	/*	.inline_button {
 		display: inline-block;
 		float: right;
 		white-space: nowrap;
 	}*/
 
+	#login, #logout{
+		float: right;
+	}
+
+
+	#menu{
+		position: absolute;
+		top: 0px;
+		left: 0px;
+		background-color: #0c0c2a;
+	}
+
+	#submit_info{
+		padding-top: 10%;
+	}
+
+	/*********************
+		Textboxes
+	**********************/
+
+	#id_major1, #id_major2, #id_current_semester, #id_classes, #id_major, #id_semester, #id_subject, #username_box, #password_box{
+		width: 200px;
+		margin: 0 auto;
+	}
 
 
 

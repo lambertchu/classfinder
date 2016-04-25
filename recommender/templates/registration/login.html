@@ -1,3 +1,20 @@
-<html>
-	<h1>Test</h1>
-</html>
+{% extends 'recommender/base.html' %}
+
+{% block content %}
+<body>
+    <h1>Login to Classfinder</h1>
+
+    <form id="login_form" method="post" action="/recommender/login/">
+        {% csrf_token %}
+        Username: <input id="username_box" type="text" name="username" value="" size="50" />
+        <br />
+        Password: <input id="password_box" type="password" name="password" value="" size="50" />
+        <br />
+
+        <input type="submit" value="submit" />
+    </form>
+
+    <h3>Don't have an account? Register <a href="{% url 'recommender:register' %}">here</a>.</h3>
+
+</body>
+{% endblock %}

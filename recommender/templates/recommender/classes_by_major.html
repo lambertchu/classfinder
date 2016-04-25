@@ -4,14 +4,27 @@
 {% block content %}
 {% load nvd3_tags %}
 <head>
-    {% include_chart_jscss %}
-    {% load_chart charttype chartdata chartcontainer extra %}
+	{% if major != None %}
+	    {% include_chart_jscss %}
+	    {% load_chart charttype chartdata chartcontainer extra %}
+	{% else %}
+		<h1>Search for information about a major</h1>
+	{% endif %}
 </head>
+
 <body>
-    <h1>Most Popular Classes in {{ major }}</h1> 
-    <h1>for Semester {{ term }}</h1>
-    <div class = "major_stats_container">
-    {% include_container chartcontainer 400 600 %}
-    </div>
+	<form role="form" action="" method="post">
+	    {% csrf_token %}
+	    {{ form.as_p }}
+	    <button class="inline_button" type="submit">Go</button>
+	</form>
+
+	{% if major != None %}
+	    <h1>Most Popular Classes in {{ major }}</h1> 
+	    <h1>for Semester {{ term }}</h1>
+	    <div class = "major_stats_container">
+	    {% include_container chartcontainer 400 600 %}
+	    </div>
+	{% endif %}
 </body>
 {% endblock %}

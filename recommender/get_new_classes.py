@@ -6,7 +6,7 @@ from sets import Set
 Read requirements for the given major from the json file
 """
 def read_file(major):
-	with open('recommender/static/recommender/test_requirements.json', 'r') as f:
+	with open('recommender/static/recommender/degree_requirements.json', 'r') as f:
 		data = json.load(f)
 	return data[major]
 
@@ -31,8 +31,9 @@ def process_list(item, classes_taken):
 """
 Returns a list of candidate classes the student should take
 """
-def get_classes_to_take(major, classes_taken):
-	reqs = read_file(major)
+def get_classes_to_take(major, classes_taken, reqs=None):
+	if reqs == None:
+		reqs = read_file(major)
 	all_classes = Set([])
 	to_take = Set([])
 

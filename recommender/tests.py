@@ -110,9 +110,14 @@ class GetClassesToTakeTestCase(TestCase):
 
 		new_classes = get_new_classes.get_classes_to_take(None, taken, reqs)
 
-		self.assertTrue('2.001' not in new_classes)
-		self.assertTrue('2.002' not in new_classes)
-		self.assertTrue('2.02A' not in new_classes)
-		self.assertTrue('2.02B' not in new_classes)
-		self.assertTrue('2.01' in new_classes)
+		self.assertEqual(new_classes, ['2.01'])
+
+
+	def test_get_classes_to_take_double_nested_4(self):
+		taken = ['2.001', '2.02A']
+		reqs = [[1, [2, "2.001", [1, "2.02A", "2.002"]], [2, "2.01", [1, "2.02A", "2.02B", "2.002"]]]]
+
+		new_classes = get_new_classes.get_classes_to_take(None, taken, reqs)
+
+		self.assertEqual(new_classes, [])
 

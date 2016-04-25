@@ -25,7 +25,7 @@ def create_bar_graph(term_stats, form, subject, info):
     return data
 
 
-def create_horizontal_bar_graph(major, term, classes):
+def create_horizontal_bar_graph(major, form, term, classes):
     xdata = []
     ydata = []
     for cls in classes:
@@ -34,6 +34,7 @@ def create_horizontal_bar_graph(major, term, classes):
 
     chartdata = {'x': xdata, 'y': ydata}
     data = {
+        'form': form,
         'major': major,
         'term': term,
         'charttype': 'multiBarHorizontalChart',

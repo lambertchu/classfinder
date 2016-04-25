@@ -60,7 +60,7 @@ for cl in classes:
 # try:
 #     w2v_model = cache.get('word2vec_model')
 #     if w2v_model == None:
-w2v_model = Word2Vec.load_word2vec_format('/Users/lambertchu/Documents/MIT/SuperUROP/NLP_Data/GoogleNews-vectors-negative300.bin', binary=True)
+# w2v_model = Word2Vec.load_word2vec_format('/Users/lambertchu/Documents/MIT/SuperUROP/NLP_Data/GoogleNews-vectors-negative300.bin', binary=True)
 #         #cache.add('word2vec_model', w2v_model, 600)    # store in cache
 # except:
 #     print "Error loading Word2Vec model"

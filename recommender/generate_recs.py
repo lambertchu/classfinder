@@ -89,6 +89,7 @@ def generate_recommendations(major, cur_semester, student_classes, keywords, ter
     new_classes = get_new_classes.get_classes_to_take(major, student_classes)
     all_classes = student_classes_list + new_classes
     
+    major = major.replace('_', ' ')
     class_table = {k:v for k, v in zip(all_classes, xrange(len(all_classes)))}
     shared_classes_table = create_shared_classes_table(major, all_classes, class_table)     # consider caching
 

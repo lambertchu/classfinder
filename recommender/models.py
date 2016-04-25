@@ -1,8 +1,24 @@
 from __future__ import unicode_literals
-
 from django.db import models
+from django.contrib.auth.models import User
+from django.contrib.postgres.fields import JSONField
+from django.db.models.signals import post_save
 
-# Create your models here.
+
+class UserProfile(models.Model):
+    # This line is required. Links UserProfile to a User model instance.
+    user = models.OneToOneField(User)
+
+    # The additional attributes we wish to include.
+    major1 = models.CharField(max_length=10)
+    major2 = models.CharField(max_length=10)
+    semester = models.IntegerField()
+    classes = JSONField()
+
+    # Override the __unicode__() method to return out something meaningful!
+    def __unicode__(self):
+        return self.user.username
+
 
 class CompleteEnrollmentData(models.Model):
     identifier = models.IntegerField(blank=True, primary_key=True)
