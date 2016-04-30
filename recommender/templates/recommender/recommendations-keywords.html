@@ -1,0 +1,20 @@
+{% extends 'recommender/base.html' %}
+{% block nav-keywords %}<strong class="nav-active"> </strong>{% endblock %}
+{% block content %}
+<body>
+	<form class="formStyle" role="form" action="" method="post">
+	    {% csrf_token %}
+	    {{ form.as_p }}
+	    <button class="inlineButton" type="submit">Go</button>
+	</form>
+
+	{% if results != None %}
+		<h1>Your Recommendations</h1>
+		<ol>
+			{% for result in results %}
+				<li><a href="{% url 'recommender:subject_info' result %}">{{ result }}</a></li>
+			{% endfor %}
+		</ol>
+	{% endif %}
+</body>
+{% endblock %}

@@ -60,7 +60,7 @@
 		Textboxes
 	**********************/
 
-	#id_major1, #id_major2, #id_current_semester, #id_classes, #id_major, #id_semester, #id_subject, #username_box, #password_box{
+	#id_major1, #id_major2, #id_current_semester, #id_classes, #id_major, #id_semester, #id_subject, #id_keywords, #username_box, #password_box{
 		width: 200px;
 		margin: 0 auto;
 	}

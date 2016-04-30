@@ -1,13 +1,19 @@
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.views import generic
+
 from models import UserProfile
-from .forms import UserForm, UserProfileForm, GetPopularClassesForm, GetSubjectForm
-import generate_recs, create_graphs
+from .forms import UserForm, UserProfileForm, KeywordsForm, GetPopularClassesForm, GetSubjectForm
+import generate_recs, keyword_similarity, create_graphs
+from dal import autocomplete
+
+from select2_many_to_many.forms import TestForm
+from select2_many_to_many.models import TestModel
 
 
 def index(request):
@@ -19,7 +25,6 @@ def profile(request):
     # process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
-        # form = StudentInfoForm(request.POST)
         form = UserProfileForm(request.POST, instance=request.user.userprofile)
 
         # check whether it's valid:
@@ -43,19 +48,32 @@ def recommendations(request):
     try:
         profile = request.user.userprofile
     except:
-        form = StudentInfoForm()
+        form = UserProfileForm()
         return render(request, 'recommender/profile.html', {'form': form})
 
     major = profile.major1
     cur_sem = profile.semester
     classes = profile.classes
-    keywords = ""
 
     recs = generate_recs.generate_recommendations(major, cur_sem, classes, keywords)
     # recs = generate_recs.keyword_similarity(keywords)
 
+    return render(request, 'recommender/recommendations.html', {'recs':recs})
 
-    return render(request, 'recommender/recommendations.html', {'recs':recs[0:50]})
+
+@login_required
+def recommendations_by_keywords(request):
+    form = KeywordsForm()
+    if request.method == 'POST':
+        form = KeywordsForm(request.POST)
+        if form.is_valid():
+            keywords = form.cleaned_data['keywords']
+            results = keyword_similarity.keyword_similarity(keywords)
+            return render(request, 'recommender/recommendations-keywords.html', {'results': results})
+
+    else:
+        return render(request, 'recommender/recommendations-keywords.html', {'form': form})
+
 
 
 @login_required
@@ -74,11 +92,11 @@ def popular_classes_by_major(request, classes=None):
 
     # This is the user's first time on the page
     if classes == None:
-        return render(request, 'recommender/classes_by_major.html', {'form': form})
+        return render(request, 'recommender/stats_by_major.html', {'form': form})
 
     # Create horizontal bar graph
     data = create_graphs.create_horizontal_bar_graph(major, form, term, classes)
-    return render(request, 'recommender/classes_by_major.html', data)
+    return render(request, 'recommender/stats_by_major.html', data)
 
 
 @login_required
@@ -94,21 +112,20 @@ def subject_info(request, response=None):
 
     # This is the user's first time on the page
     if response == None:
-        return render(request, 'recommender/subject_info_page.html', {'form': form})
+        return render(request, 'recommender/stats_by_class.html', {'form': form})
 
     # Otherwise, the user searched for a class
     info = subject_info.get_online_info(response)
     if info == None:
         # TODO: only do this for English words. Invalid classes should throw error
-        import keyword_similarity
         results = keyword_similarity.keyword_similarity(response)
-        return render(request, 'recommender/subject_search_results.html', {'results': results})
+        return render(request, 'recommender/recommendations-keywords.html', {'results': results})
 
     term_stats = subject_info.get_term_stats(response)
 
     # Create bar graph
     data = create_graphs.create_bar_graph(term_stats, form, response, info)
-    return render(request, 'recommender/subject_info_page.html', data)
+    return render(request, 'recommender/stats_by_class.html', data)
 
 
 
@@ -141,7 +158,6 @@ def register(request):
             # This delays saving the model until we're ready to avoid integrity problems.
             profile = profile_form.save(commit=False)
             profile.user = user
-
 
             # Now we save the UserProfile model instance.
             profile.save()
@@ -215,3 +231,49 @@ def user_logout(request):
 
     # Take the user back to the homepage.
     return render(request, 'recommender/index.html')
+
+
+
+# class UserAutocomplete(autocomplete.Select2QuerySetView):
+#     """
+#     Import all classes at MIT. Returns a list of the classes.
+#     """
+#     def get_mit_classes():
+#         all_classes = CompleteEnrollmentData.objects.values_list("subject").distinct()
+#         all_classes = [x[0] for x in all_classes]
+
+#         mit_classes = []
+
+#         for c in all_classes:
+#             if c == None or c[0:2] == "HA" or c[0:2] == "MC" or (c[0:1] == "W" and c[0:3] != "WGS"):
+#                 continue
+#             mit_classes.append(c)
+#         return mit_classes
+
+
+#     def get_queryset(self):
+#         # Don't forget to filter out results depending on the visitor !
+#         # if not self.request.user.is_authenticated():
+#         #     return UserProfile.objects.none()
+
+#         # qs = UserProfile.objects.all()
+#         # print qs
+
+#         qs = get_mit_classes()
+#         print qs
+
+#         if self.q:
+#             qs = qs.filter(name__istartswith=self.q)
+
+#         return qs
+
+
+class UpdateView(generic.UpdateView):
+    model = TestModel
+    form_class = TestForm
+    template_name = 'profile.html'
+    success_url = reverse_lazy('recommender:classes-autocomplete')
+
+    def get_object(self):
+        return TestModel.objects.first()
+
