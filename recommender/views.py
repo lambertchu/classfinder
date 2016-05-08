@@ -1,7 +1,7 @@
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render, render_to_response, redirect
 from django.template import RequestContext
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -11,9 +11,6 @@ from models import UserProfile
 from .forms import UserForm, UserProfileForm, KeywordsForm, GetPopularClassesForm, GetSubjectForm
 import generate_recs, keyword_similarity, create_graphs
 from dal import autocomplete
-
-from select2_many_to_many.forms import TestForm
-from select2_many_to_many.models import TestModel
 
 
 def index(request):
@@ -25,7 +22,10 @@ def profile(request):
     # process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
-        form = UserProfileForm(request.POST, instance=request.user.userprofile)
+        try:
+            form = UserProfileForm(request.POST, instance=request.user.userprofile)
+        except:
+            form = UserProfileForm(request.POST)
 
         # check whether it's valid:
         if form.is_valid():
@@ -45,18 +45,14 @@ def profile(request):
 def recommendations(request):
     #  Choices are: classes, id, major1, major2, semester, user, user_id
 
-    try:
-        profile = request.user.userprofile
-    except:
-        form = UserProfileForm()
-        return render(request, 'recommender/profile.html', {'form': form})
+    profile = request.user.userprofile
+    # return redirect(reverse('recommender:profile'))
 
     major = profile.major1
     cur_sem = profile.semester
     classes = profile.classes
 
-    recs = generate_recs.generate_recommendations(major, cur_sem, classes, keywords)
-    # recs = generate_recs.keyword_similarity(keywords)
+    recs = generate_recs.generate_recommendations(major, cur_sem, classes)
 
     return render(request, 'recommender/recommendations.html', {'recs':recs})
 
@@ -100,7 +96,7 @@ def popular_classes_by_major(request, classes=None):
 
 
 @login_required
-def subject_info(request, response=None):
+def class_info(request, response=None):
     import subject_info
 
     # Display textbox for user to enter a class
@@ -108,7 +104,7 @@ def subject_info(request, response=None):
     if request.method == 'POST':
         form = GetSubjectForm(request.POST)
         if form.is_valid():
-            response = form.cleaned_data['subject']
+            response = form.cleaned_data['class_name']
 
     # This is the user's first time on the page
     if response == None:
@@ -125,6 +121,9 @@ def subject_info(request, response=None):
 
     # Create bar graph
     data = create_graphs.create_bar_graph(term_stats, form, response, info)
+
+    # TODO
+    # return redirect(reverse('recommender:class_info'), args=(response,), urllib.urlencode(data))
     return render(request, 'recommender/stats_by_class.html', data)
 
 
@@ -229,51 +228,27 @@ def user_logout(request):
     # Since we know the user is logged in, we can now just log them out.
     logout(request)
 
+    # TODO: message that says "Thanks for using"
     # Take the user back to the homepage.
     return render(request, 'recommender/index.html')
 
 
 
-# class UserAutocomplete(autocomplete.Select2QuerySetView):
-#     """
-#     Import all classes at MIT. Returns a list of the classes.
-#     """
-#     def get_mit_classes():
-#         all_classes = CompleteEnrollmentData.objects.values_list("subject").distinct()
-#         all_classes = [x[0] for x in all_classes]
-
-#         mit_classes = []
-
-#         for c in all_classes:
-#             if c == None or c[0:2] == "HA" or c[0:2] == "MC" or (c[0:1] == "W" and c[0:3] != "WGS"):
-#                 continue
-#             mit_classes.append(c)
-#         return mit_classes
 
 
-#     def get_queryset(self):
-#         # Don't forget to filter out results depending on the visitor !
-#         # if not self.request.user.is_authenticated():
-#         #     return UserProfile.objects.none()
-
-#         # qs = UserProfile.objects.all()
-#         # print qs
-
-#         qs = get_mit_classes()
-#         print qs
-
-#         if self.q:
-#             qs = qs.filter(name__istartswith=self.q)
-
-#         return qs
+# from select2_many_to_many.forms import TestForm
+# # from select2_many_to_many.models import TestModel
+# from models import SubjectInfo
 
 
-class UpdateView(generic.UpdateView):
-    model = TestModel
-    form_class = TestForm
-    template_name = 'profile.html'
-    success_url = reverse_lazy('recommender:classes-autocomplete')
+# class UpdateView(generic.UpdateView):
+#     # model = TestModel
+#     model = SubjectInfo
+#     form_class = TestForm
+#     template_name = 'recommender/select2_outside_admin.html'
+#     success_url = reverse_lazy('select2_outside_admin')
 
-    def get_object(self):
-        return TestModel.objects.first()
+#     def get_object(self):
+#         return SubjectInfo.objects.first()
+#         # return TestModel.objects.first()
 

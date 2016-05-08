@@ -12,7 +12,7 @@
 		<h1>Your Recommendations</h1>
 		<ol>
 			{% for result in results %}
-				<li><a href="{% url 'recommender:subject_info' result %}">{{ result }}</a></li>
+				<li><a href="{% url 'recommender:class_info' result %}">{{ result }}</a></li>
 			{% endfor %}
 		</ol>
 	{% endif %}

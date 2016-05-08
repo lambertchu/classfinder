@@ -32,17 +32,17 @@ class UserProfileForm(forms.ModelForm):
 	major1 = forms.ChoiceField(choices=majors, initial="None")
 	major2 = forms.ChoiceField(choices=majors, initial="None")
 	semester = forms.ChoiceField(choices=[(x, x) for x in range(1, 9)])
-	# classes = forms.CharField(max_length=256)
+	classes = forms.CharField(max_length=256)
 	# classes = autocomplete.ModelSelect2Multiple(url='user-autocomplete')
 
 	class Meta:
 		model = UserProfile
 		fields = ('major1', 'major2', 'semester', 'classes')
-		widgets = {
-            'classes': autocomplete.ModelSelect2Multiple(
-            	'recommender:classes-autocomplete'
-            )
-        }
+		# widgets = {
+  #           'classes': autocomplete.ModelSelect2Multiple(
+  #           	'recommender:classes-autocomplete'
+  #           )
+  #       }
 
 
 class GetPopularClassesForm(forms.Form):
@@ -52,7 +52,7 @@ class GetPopularClassesForm(forms.Form):
 
 
 class GetSubjectForm(forms.Form):
-	subject = forms.CharField(max_length=256)	# TODO: divide by course and make dropdowns?
+	class_name = forms.CharField(max_length=256)	# TODO: divide by course and make dropdowns?
 
 
 class KeywordsForm(forms.Form):

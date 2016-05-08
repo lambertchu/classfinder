@@ -13,12 +13,12 @@ class UserProfile(models.Model):
     major1 = models.CharField(max_length=10)
     major2 = models.CharField(max_length=10)
     semester = models.IntegerField()
-    # classes = JSONField()
-    classes = models.ManyToManyField(
-        'self',
-        blank=True,
-        related_name='classes'
-    )
+    classes = JSONField()
+    # classes = models.ManyToManyField(
+    #     'self',
+    #     blank=True,
+    #     related_name='classes'
+    # )
 
     # Override the __unicode__() method to return out something meaningful!
     def __unicode__(self):

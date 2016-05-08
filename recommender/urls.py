@@ -1,7 +1,6 @@
 from django.conf.urls import url
 
 from . import views
-from models import UserProfile
 from dal import autocomplete
 
 app_name = 'recommender'
@@ -14,7 +13,8 @@ urlpatterns = [
     url(r'^recommendations/$', views.recommendations, name='recommendations'),
     url(r'^recommendations-keywords/$', views.recommendations_by_keywords, name='keywords'),
     url(r'^major/$', views.popular_classes_by_major, name='major'),
-    url(r'^subject/$', views.subject_info, name='subject_info'),
-    url(r'^subject/(?P<response>\w+\.\w+)/$', views.subject_info, name='subject_info'),
-    url( r'^classes-autocomplete/$', views.UpdateView.as_view(), name='classes-autocomplete', ),
+    url(r'^class/$', views.class_info, name='class_info'),
+    url(r'^class/(?P<response>\w+\.\w+)/$', views.class_info, name='class_info'),
+    # url( r'^classes-autocomplete/$', views.UpdateView.as_view(), name='classes-autocomplete', ),
+    # url( r'test/$', views.UpdateView.as_view(), name='select2_outside_admin', ),
 ]

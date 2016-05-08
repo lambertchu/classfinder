@@ -3,9 +3,13 @@
 
 {% block content %}
 	<h1>Your Recommendations</h1>
-	<ol>
+	<table>
 	{% for rec in recs %}
-		<li><a href="{% url 'recommender:subject_info' rec.0 %}">{{ rec.0 }} -  {{ rec.1 }}</a></li>
+		<tr>
+		<td><a href="{% url 'recommender:class_info' rec.0 %}">{{ rec.0 }} -  {{ rec.1 }}</a></td>
+		</tr>
 	{% endfor %}
-	</ol>
+	</table>
+
+	<a href="{% url 'recommender:profile' %}"> Want to Update Your Recommendations?</a>
 {% endblock %}

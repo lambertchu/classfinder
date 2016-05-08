@@ -9,8 +9,8 @@
     <li>{% block nav-home %}<a href="{% url 'recommender:index' %}">Home</a>{% endblock %}</li>
     <li>{% block nav-profile %}<a href="{% url 'recommender:profile' %}">Profile</a>{% endblock %}</li>
     <li>{% block nav-rec %}<a href="{% url 'recommender:recommendations' %}">Recommendations</a>{% endblock %}</li>
+    <li>{% block nav-subject %}<a href="{% url 'recommender:class_info' %}">Search for Class</a>{% endblock %}</li>
     <li>{% block nav-major %}<a href="{% url 'recommender:major' %}">Stats By Major</a>{% endblock %}</li>
-    <li>{% block nav-subject %}<a href="{% url 'recommender:subject_info' %}">Stats By Class</a>{% endblock %}</li>
 </ul>
 
 {% if user.is_anonymous %}
@@ -26,3 +26,8 @@
 {% block content %}
 {% endblock %}
 </div>
+
+
+<!-- <footer>
+<p>&copy; Lambert Chu</p>
+</footer> -->

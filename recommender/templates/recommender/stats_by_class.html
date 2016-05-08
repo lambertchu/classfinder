@@ -10,7 +10,7 @@
 	    {% include_chart_jscss %}
 	    {% load_chart charttype chartdata chartcontainer extra %}
 	{% else %}
-		<h1>Search for information about a subject</h1>
+		<h1>Search for information about a class</h1>
 	{% endif %}
 </head>
 
@@ -23,7 +23,7 @@
 
 	{% if info != None %}
 		<h1>{{subject}}</h1>
-		<div class = "subject_info_container">
+		<div class = "class_info_container">
 		<p>Title: {{info.title}}</p>
 		<p>Prerequisites: {{info.prerequisites}}</p>
 		<p>Units: {{info.units}}</p>

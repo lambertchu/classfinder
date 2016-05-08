@@ -33,20 +33,24 @@ def create_shared_classes_table(major, all_classes, class_table):
 """
 Determine the likelihood of a class being taken given the current term.
 """
-def get_term_relevance_data(cur_term):
+def get_term_relevance_data(cur_term, new_classes):
     try:
-        subject_info = SubjectInfo.objects.values("subject", cur_term, "rating")     # maybe also "title"?
+        subject_info = SubjectInfo.objects.filter(subject__in=new_classes).values("subject", "title", cur_term, "total")
     except:
-        print "Error"   # need better error handling
+        print "Error connecting to SubjectInfo database table."
 
     term_data = {}
-    for sub in subject_info:
-        cur_term_count = sub[cur_term] + 1
-        total_count = sub["total"] + 16
+    class_titles = {}
+    for row in subject_info:
+        subject = row["subject"]
+        class_titles[subject] = row["title"]
+
+        cur_term_count = row[cur_term] + 1
+        total_count = row["total"] + 16
         time_modifier = float(cur_term_count) / total_count
-        term_data[sub["subject"]] = time_modifier
+        term_data[subject] = time_modifier
         
-    return term_data
+    return term_data, class_titles
 
 
 """
@@ -66,15 +70,6 @@ def calculate_rating(new_class, student_classes_list, class_table, shared_classe
         except:
             print (new_class, s)
 
-
-        # Term relevance
-        # if term_relevance:
-        #     try:
-        #         tr_multiplier = term_data[new_class]
-        #         rating *= tr_multiplier
-        #     except:
-        #         continue
-
     return rating
 
 
@@ -84,7 +79,7 @@ Recommendations are for the current semester and are based upon all classes take
 
 TODO: error handling for invalid class?
 """
-def generate_recommendations(major, cur_semester, student_classes, keywords, term_relevance = False):
+def generate_recommendations(major, cur_semester, student_classes, term_relevance = False):
     student_classes_list = student_classes.split()
     new_classes = get_new_classes.get_classes_to_take(major, student_classes)
     all_classes = student_classes_list + new_classes
@@ -93,8 +88,10 @@ def generate_recommendations(major, cur_semester, student_classes, keywords, ter
     class_table = {k:v for k, v in zip(all_classes, xrange(len(all_classes)))}
     shared_classes_table = create_shared_classes_table(major, all_classes, class_table)     # consider caching
 
-    # cur_term = "term%s" % cur_semester
-    # term_data = get_term_relevance_data(cur_term)       # SHOULD BE CACHED
+
+    # Calculate time (semester) relevance
+    cur_term = "term%s" % cur_semester
+    term_data, class_titles = get_term_relevance_data(cur_term, new_classes)
 
 
     # Calculate "importance" of each class that hasn't been taken by the student
@@ -102,7 +99,22 @@ def generate_recommendations(major, cur_semester, student_classes, keywords, ter
 
     for new_class in new_classes:
         rating = calculate_rating(new_class, student_classes_list, class_table, shared_classes_table)
+        # try:
+        #     rating *= term_data[new_class]    # time relevance
+        # except:
+        #     pass
         importance_ratings[new_class] = rating
 
-    sorted_importance_ratings = sorted(importance_ratings, key=importance_ratings.get, reverse=True)
-    return sorted_importance_ratings
+    # Create list of classes in order of popularity
+    sorted_classes = sorted(importance_ratings, key=importance_ratings.get, reverse=True)
+
+    recs = []
+    for c in sorted_classes[:20]:
+        try:
+            title = class_titles[c]
+        except:
+            title = ""
+
+        recs.append((c, title))
+
+    return recs
