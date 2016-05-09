@@ -3,13 +3,23 @@
 
 {% block content %}
 	<h1>Your Recommendations</h1>
-	<table>
-	{% for rec in recs %}
-		<tr>
-		<td><a href="{% url 'recommender:class_info' rec.0 %}">{{ rec.0 }} -  {{ rec.1 }}</a></td>
-		</tr>
-	{% endfor %}
-	</table>
 
-	<a href="{% url 'recommender:profile' %}"> Want to Update Your Recommendations?</a>
+	<div id=recs_block>
+		<div class="btn-group">
+			<a class="btn pill" href="{% url 'recommender:recommendations' major1%}"> {{major1}} </a>
+			{% if major2 != 'None' %}
+				<a class="btn pill" href="{% url 'recommender:recommendations' major2%}"> {{major2}} </a>
+			{% endif %}
+		</div>
+
+		<table>
+		{% for rec in recs %}
+			<tr>
+			<td><a href="{% url 'recommender:class_info' rec.0 %}">{{ rec.0 }} -  {{ rec.1 }}</a></td>
+			</tr>
+		{% endfor %}
+		</table>
+
+		<a href="{% url 'recommender:profile' %}"> Want to Update Your Recommendations?</a>
+	</div>
 {% endblock %}

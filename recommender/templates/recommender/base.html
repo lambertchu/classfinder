@@ -8,8 +8,8 @@
 <ul>
     <li>{% block nav-home %}<a href="{% url 'recommender:index' %}">Home</a>{% endblock %}</li>
     <li>{% block nav-profile %}<a href="{% url 'recommender:profile' %}">Profile</a>{% endblock %}</li>
-    <li>{% block nav-rec %}<a href="{% url 'recommender:recommendations' %}">Recommendations</a>{% endblock %}</li>
-    <li>{% block nav-subject %}<a href="{% url 'recommender:class_info' %}">Search for Class</a>{% endblock %}</li>
+    <li>{% block nav-rec %}<a href="{% url 'recommender:recommendations' user.userprofile.major1 %}">Recommendations</a>{% endblock %}</li>
+    <li>{% block nav-subject %}<a href="{% url 'recommender:class_info_initial' %}">Search for Class</a>{% endblock %}</li>
     <li>{% block nav-major %}<a href="{% url 'recommender:major' %}">Stats By Major</a>{% endblock %}</li>
 </ul>
 

@@ -9,12 +9,14 @@ from django.views import generic
 
 from models import UserProfile
 from .forms import UserForm, UserProfileForm, KeywordsForm, GetPopularClassesForm, GetSubjectForm
-import generate_recs, keyword_similarity, create_graphs
+import generate_recs, keyword_similarity, subject_info, create_graphs
 from dal import autocomplete
+
 
 
 def index(request):
     return render(request, 'recommender/index.html')
+
 
 
 @login_required
@@ -41,20 +43,22 @@ def profile(request):
     return render(request, 'recommender/profile.html', {'form': form})
 
 
-@login_required
-def recommendations(request):
-    #  Choices are: classes, id, major1, major2, semester, user, user_id
 
+@login_required
+def recommendations(request, major):
+    #  Choices are: classes, id, major1, major2, semester, user, user_id
     profile = request.user.userprofile
     # return redirect(reverse('recommender:profile'))
 
-    major = profile.major1
+    major1 = profile.major1
+    major2 = profile.major2
     cur_sem = profile.semester
     classes = profile.classes
 
     recs = generate_recs.generate_recommendations(major, cur_sem, classes)
 
-    return render(request, 'recommender/recommendations.html', {'recs':recs})
+    return render(request, 'recommender/recommendations.html', {'recs':recs, 'major1':major1, 'major2':major2})
+
 
 
 @login_required
@@ -95,36 +99,51 @@ def popular_classes_by_major(request, classes=None):
     return render(request, 'recommender/stats_by_major.html', data)
 
 
-@login_required
-def class_info(request, response=None):
-    import subject_info
 
+@login_required
+def class_info_initial(request):
+    # Display textbox for user to enter a class
+    form = GetSubjectForm()
+
+    if request.method == 'POST':
+        form = GetSubjectForm(request.POST)
+        if form.is_valid():
+            class_name = form.cleaned_data['class_name']
+            return class_info(request, class_name)
+
+    return render(request, 'recommender/stats_by_class.html', {'form': form})
+
+
+
+@login_required
+def class_info(request, class_name):
     # Display textbox for user to enter a class
     form = GetSubjectForm()
     if request.method == 'POST':
         form = GetSubjectForm(request.POST)
         if form.is_valid():
-            response = form.cleaned_data['class_name']
+            class_name = form.cleaned_data['class_name']
 
-    # This is the user's first time on the page
-    if response == None:
-        return render(request, 'recommender/stats_by_class.html', {'form': form})
+    info = subject_info.get_online_info(class_name)
 
-    # Otherwise, the user searched for a class
-    info = subject_info.get_online_info(response)
+
+    # The user searched with a keyword
     if info == None:
         # TODO: only do this for English words. Invalid classes should throw error
-        results = keyword_similarity.keyword_similarity(response)
-        return render(request, 'recommender/recommendations-keywords.html', {'results': results})
+        recs = keyword_similarity.keyword_similarity(class_name)
+        return render(request, 'recommender/recommendations-keywords.html', {'form':form, 'recs': recs})
 
-    term_stats = subject_info.get_term_stats(response)
+
+    # The user searched with a class number
+    term_stats = subject_info.get_term_stats(class_name)
 
     # Create bar graph
-    data = create_graphs.create_bar_graph(term_stats, form, response, info)
+    data = create_graphs.create_bar_graph(term_stats, form, class_name, info)
 
     # TODO
     # return redirect(reverse('recommender:class_info'), args=(response,), urllib.urlencode(data))
     return render(request, 'recommender/stats_by_class.html', data)
+
 
 
 
@@ -221,6 +240,7 @@ def user_login(request):
         # No context variables to pass to the template system, hence the
         # blank dictionary object...
         return render_to_response('registration/login.html', {}, context)
+
 
 
 @login_required

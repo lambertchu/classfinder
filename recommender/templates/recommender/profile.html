@@ -1,12 +1,11 @@
 {% extends 'recommender/base.html' %}
 {% block nav-profile %}<strong class="nav-active">Profile</strong>{% endblock %}
+
 {% block content %}
-	<div id='submit_info'>
 	<h1>Submit Your Info</h1>
 	<form role="form" action="" method="post">
 	    {% csrf_token %}
 	    {{ form.as_p }}
 	    <button type="submit">Save</button>
 	</form>
-	</div>
 {% endblock %}

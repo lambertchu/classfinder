@@ -96,6 +96,12 @@
 		white-space: nowrap;
 	}*/
 
+	#recs_block{
+		margin-left: 20em;
+		margin-right: 20em;
+		margin-bottom: 5em;
+	}
+
 	#login, #logout{
 		float: right;
 	}
@@ -108,9 +114,7 @@
 		background-color: #0c0c2a;
 	}
 
-	#submit_info{
-		padding-top: 10%;
-	}
+
 
 	/*********************
 		Textboxes
@@ -119,6 +123,65 @@
 	#id_major1, #id_major2, #id_current_semester, #id_classes, #id_major, #id_semester, #id_class_name, #id_keywords, #username_box, #password_box, #id_username, #id_email, #id_password{
 		width: 200px;
 		margin: 0 auto;
+	}
+
+
+
+	/*********************
+		Buttons
+	**********************/
+
+	.btn{
+		text-decoration:none;
+		color:#333333;
+		font-size:20px;
+		font-weight:bold;
+		padding:0 15px;
+		line-height:32px;
+		height: auto;
+		display:inline-block;
+		text-align:center;
+		background-color:#DDDDDD;
+	}
+
+	.btn:hover{
+		background-color:#F6F6F6;
+	}
+
+	.btn.pill{
+	  -webkit-border-radius: 16px;
+	  -moz-border-radius: 16px;
+	  border-radius: 16px;
+	}
+
+	.btn-group > .btn.round:not(:first-child):not(:last-child), .btn-group > .btn.pill:not(:first-child):not(:last-child){
+	  -webkit-border-radius: 0;
+	  -moz-border-radius: 0;
+	  border-radius: 0;
+	}
+
+	.btn-group > .btn.round:first-child, .btn-group > .btn.pill:first-child{
+	  -webkit-border-top-right-radius: 0;
+	  -webkit-border-bottom-right-radius: 0;
+	  -moz-border-radius-topright: 0;
+	  -moz-border-radius-bottomright: 0;
+	  border-top-right-radius: 0;
+	  border-bottom-right-radius: 0;
+	}
+
+	.btn-group > .btn.round:last-child, .btn-group > .btn.pill:last-child{
+	  -webkit-border-top-left-radius: 0;
+	  -webkit-border-bottom-left-radius: 0;
+	  -moz-border-radius-topleft: 0;
+	  -moz-border-radius-bottomleft: 0;
+	  border-top-left-radius: 0;
+	  border-bottom-left-radius: 0;
+	}
+
+	.btn-group .btn + .btn{
+		border-left: 1px solid rgba(0, 0, 0, .1);
+		margin-left:-1px;
+		margin-bottom: 5%;
 	}
 
 
@@ -137,7 +200,6 @@
 	table tr td:first-child::before {
 	    content: counter(rowNumber);
 	    min-width: 1em;
-	    margin-left: 20em;
 	    margin-right: 1em;
 	}
 

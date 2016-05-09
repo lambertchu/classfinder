@@ -1,33 +1,35 @@
 import string
 from numpy import log
 
-import subject_info
-import startup
+import startup, subject_info
 from models import CompleteEnrollmentData, SubjectInfo
 
 
 """
 Find classes that are most similar to the given keywords
 """
-def keyword_similarity(keywords):
+def keyword_similarity(user_keywords):
     stop_list = set('for a of also by the and to in on as at from with but how about such eg ie'.split())   # remove common words
     sim_ratings = {}
+    class_titles = {}
 
-    for cl in mit_classes:
+    for cl in startup.mit_classes:
         try:
             words, title = SubjectInfo.objects.filter(subject=cl).values_list("keywords", "title")[0]
-            class_keywords = [x for x in words if x not in stop_list]
         except:
             continue
 
+        class_keywords = [x for x in words if x not in stop_list]
         if len(class_keywords) == 0 or len(title) == 0:
             continue
 
-        # Get title of class
+        class_titles[cl] = title
+
+        # Get each word in title of class
         title_list = title.split()
         title_keywords = [x for x in title_list if x not in stop_list]
 
-        keywords_list = keywords.split()
+        keywords_list = user_keywords.split()
         sim_rating = startup.model.n_similarity(class_keywords, keywords_list)
 
         try:
@@ -39,21 +41,14 @@ def keyword_similarity(keywords):
 
     # sort and return
     sorted_sim_ratings = sorted(sim_ratings, key=sim_ratings.get, reverse=True)
-    return sorted_sim_ratings
 
+    recs = []
+    for c in sorted_sim_ratings[:20]:
+        try:
+            title = class_titles[c]
+        except:
+            title = ""
 
+        recs.append((c, title))
 
-"""
-The following is executed upon import
-"""
-# Get list of all classes
-try:
-    classes = CompleteEnrollmentData.objects.order_by().values_list("subject", flat=True).distinct()
-except:
-    print "Error loading classes"
-
-mit_classes = []
-for cl in classes:
-    if cl == None or cl[0:2] == "HA" or cl[0:2] == "MC" or (cl[0:1] == "W" and cl[0:3] != "WGS"):
-        continue
-    mit_classes.append(cl)
+    return recs

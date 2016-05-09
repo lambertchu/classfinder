@@ -1,8 +1,7 @@
 {% extends 'recommender/base.html' %}
-{% block nav-subject %}<strong class="nav-active">Stats By Class</strong>{% endblock %}
+{% block nav-subject %}<strong class="nav-active">Search For Class</strong>{% endblock %}
+
 {% block content %}
-
-
 <!-- Modals: http://www.abidibo.net/blog/2014/05/26/how-implement-modal-popup-django-forms-bootstrap/ -->
 {% load nvd3_tags %}
 <head>
@@ -24,12 +23,12 @@
 	{% if info != None %}
 		<h1>{{subject}}</h1>
 		<div class = "class_info_container">
-		<p>Title: {{info.title}}</p>
-		<p>Prerequisites: {{info.prerequisites}}</p>
-		<p>Units: {{info.units}}</p>
-		<p>Instructors: {{info.instructors}}</p>
-		<p>Description: {{info.description}}</p>
-		{% include_container chartcontainer 400 600 %}
+			<p>Title: {{info.title}}</p>
+			<p>Prerequisites: {{info.prerequisites}}</p>
+			<p>Units: {{info.units}}</p>
+			<p>Instructors: {{info.instructors}}</p>
+			<p>Description: {{info.description}}</p>
+			{% include_container chartcontainer 400 600 %}
 		</div>
 	{% endif %}
 </body>

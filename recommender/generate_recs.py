@@ -79,7 +79,7 @@ Recommendations are for the current semester and are based upon all classes take
 
 TODO: error handling for invalid class?
 """
-def generate_recommendations(major, cur_semester, student_classes, term_relevance = False):
+def generate_recommendations(major, cur_semester, student_classes):
     student_classes_list = student_classes.split()
     new_classes = get_new_classes.get_classes_to_take(major, student_classes)
     all_classes = student_classes_list + new_classes

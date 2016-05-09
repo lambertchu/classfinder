@@ -1,4 +1,4 @@
-def create_bar_graph(term_stats, form, subject, info):    
+def create_bar_graph(term_stats, form, class_name, info):    
     xdata = []
     ydata = []
     for term, value in term_stats.iteritems():
@@ -10,7 +10,7 @@ def create_bar_graph(term_stats, form, subject, info):
     chartcontainer = 'discretebarchart_container'
     data = {
         'form': form,
-        'subject': subject,
+        'class_name': class_name,
         'info': info,
         'charttype': charttype,
         'chartdata': chartdata,

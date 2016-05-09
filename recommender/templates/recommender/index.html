@@ -5,10 +5,10 @@
 	<h1>Welcome to MIT ClassFinder</h1>
 	<a href="{% url 'recommender:profile' %}">Edit Your Profile</a>
 	<br>
-	<a href="{% url 'recommender:recommendations' %}">Recommendations</a>
+	<a href="{% url 'recommender:recommendations' user.userprofile.major1 %}">Recommendations</a>
 	<br>
 	<a href="{% url 'recommender:major' %}">Stats By Major</a>
 	<br>
-	<a href="{% url 'recommender:class_info' %}">Stats By Class</a>
+	<a href="{% url 'recommender:class_info_initial' %}">Stats By Class</a>
 	</div>
 {% endblock %}
