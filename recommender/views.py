@@ -14,9 +14,12 @@ from dal import autocomplete
 
 
 
+# IDEA: create a poll/forum where users can vote for "unknown" classes they recommend
+
+
+
 def index(request):
     return render(request, 'recommender/index.html')
-
 
 
 @login_required
@@ -43,7 +46,6 @@ def profile(request):
     return render(request, 'recommender/profile.html', {'form': form})
 
 
-
 @login_required
 def recommendations(request, major):
     #  Choices are: classes, id, major1, major2, semester, user, user_id
@@ -55,25 +57,26 @@ def recommendations(request, major):
     cur_sem = profile.semester
     classes = profile.classes
 
+    if major == "" or major == None:
+        major = major1
+        
     recs = generate_recs.generate_recommendations(major, cur_sem, classes)
 
     return render(request, 'recommender/recommendations.html', {'recs':recs, 'major1':major1, 'major2':major2})
 
 
+# @login_required
+# def recommendations_by_keywords(request):
+#     form = KeywordsForm()
+#     if request.method == 'POST':
+#         form = KeywordsForm(request.POST)
+#         if form.is_valid():
+#             keywords = form.cleaned_data['keywords']
+#             results = keyword_similarity.keyword_similarity(keywords)
+#             return render(request, 'recommender/recommendations-keywords.html', {'results': results})
 
-@login_required
-def recommendations_by_keywords(request):
-    form = KeywordsForm()
-    if request.method == 'POST':
-        form = KeywordsForm(request.POST)
-        if form.is_valid():
-            keywords = form.cleaned_data['keywords']
-            results = keyword_similarity.keyword_similarity(keywords)
-            return render(request, 'recommender/recommendations-keywords.html', {'results': results})
-
-    else:
-        return render(request, 'recommender/recommendations-keywords.html', {'form': form})
-
+#     else:
+#         return render(request, 'recommender/recommendations-keywords.html', {'form': form})
 
 
 @login_required
@@ -99,7 +102,6 @@ def popular_classes_by_major(request, classes=None):
     return render(request, 'recommender/stats_by_major.html', data)
 
 
-
 @login_required
 def class_info_initial(request):
     # Display textbox for user to enter a class
@@ -112,7 +114,6 @@ def class_info_initial(request):
             return class_info(request, class_name)
 
     return render(request, 'recommender/stats_by_class.html', {'form': form})
-
 
 
 @login_required
@@ -143,8 +144,6 @@ def class_info(request, class_name):
     # TODO
     # return redirect(reverse('recommender:class_info'), args=(response,), urllib.urlencode(data))
     return render(request, 'recommender/stats_by_class.html', data)
-
-
 
 
 def register(request):
@@ -202,7 +201,6 @@ def register(request):
             context)
 
 
-
 def user_login(request):
     context = RequestContext(request)
     # If the request is a HTTP POST, try to pull out the relevant information.
@@ -242,7 +240,6 @@ def user_login(request):
         return render_to_response('registration/login.html', {}, context)
 
 
-
 @login_required
 def user_logout(request):
     # Since we know the user is logged in, we can now just log them out.
@@ -257,18 +254,16 @@ def user_logout(request):
 
 
 # from select2_many_to_many.forms import TestForm
-# # from select2_many_to_many.models import TestModel
-# from models import SubjectInfo
+# from select2_many_to_many.models import TestModel
+# # from models import SubjectInfo
 
 
 # class UpdateView(generic.UpdateView):
-#     # model = TestModel
-#     model = SubjectInfo
+#     model = TestModel
 #     form_class = TestForm
 #     template_name = 'recommender/select2_outside_admin.html'
 #     success_url = reverse_lazy('select2_outside_admin')
 
 #     def get_object(self):
-#         return SubjectInfo.objects.first()
-#         # return TestModel.objects.first()
+#         return TestModel.objects.first()
 

@@ -13,13 +13,13 @@ def keyword_similarity(user_keywords):
     sim_ratings = {}
     class_titles = {}
 
-    for cl in startup.mit_classes:
-        try:
-            words, title = SubjectInfo.objects.filter(subject=cl).values_list("keywords", "title")[0]
-        except:
-            continue
+    subject_info = SubjectInfo.objects.filter(subject__in=startup.mit_classes).values("subject", "keywords", "title")
 
-        class_keywords = [x for x in words if x not in stop_list]
+    for row in subject_info:
+        cl = row["subject"]
+        title = row["title"]
+        class_keywords = [x for x in row["keywords"] if x not in stop_list]
+        
         if len(class_keywords) == 0 or len(title) == 0:
             continue
 
@@ -28,6 +28,7 @@ def keyword_similarity(user_keywords):
         # Get each word in title of class
         title_list = title.split()
         title_keywords = [x for x in title_list if x not in stop_list]
+
 
         keywords_list = user_keywords.split()
         sim_rating = startup.model.n_similarity(class_keywords, keywords_list)

@@ -18,7 +18,7 @@ from django.contrib import admin
 import mit
 
 urlpatterns = [
-    url(r'^recommender/', include('recommender.urls', namespace='recommender')),
+    url(r'^', include('recommender.urls', namespace='recommender')),
     url(r'^admin/', admin.site.urls),
     url(r'^login/$', 'django.contrib.auth.views.login'),
     url(r'^logout/$', 'django.contrib.auth.views.logout'),

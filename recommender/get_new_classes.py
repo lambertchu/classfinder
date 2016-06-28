@@ -1,6 +1,6 @@
 import json
 from sets import Set
-
+from startup import mit_classes
 
 """
 Read requirements for the given major from the json file
@@ -34,6 +34,14 @@ Returns a list of candidate classes the student should take
 def get_classes_to_take(major, classes_taken, reqs=None):
 	if reqs == None:
 		reqs = read_file(major)
+
+
+	if major == '18_general':
+	    return [c for c in mit_classes if c.startswith('18.') and c not in classes_taken]
+
+	elif major == '17':
+		return [c for c in mit_classes if c.startswith('17.') and c not in classes_taken]
+
 	all_classes = Set([])
 	to_take = Set([])
 
