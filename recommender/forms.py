@@ -1,4 +1,3 @@
-import json
 from django import forms
 from django.contrib.auth.models import User
 from recommender.models import UserProfile, CompleteEnrollmentData
@@ -10,13 +9,14 @@ Import all majors at MIT. Returns a list of tuples of the majors
 """
 def get_mit_majors():
 	majors = []
-	with open('recommender/static/recommender/degree_requirements.json', 'r') as f:
-		data = json.load(f)
+	with open('recommender/static/recommender/majors.txt', 'r') as f:
+		content = f.readlines()
 
-	for major in data:
-		majors.append((major, major))
-	return sorted(majors, key=lambda tup: tup[0])
-
+	for major in content:
+		major = major.rstrip()	# remove trailing newline
+		major_space = major.replace('_', '-')
+		majors.append((major, major_space))
+	return majors
 
 
 class UserForm(forms.ModelForm):
@@ -52,7 +52,7 @@ class GetPopularClassesForm(forms.Form):
 
 
 class GetSubjectForm(forms.Form):
-	class_name = forms.CharField(max_length=256)	# TODO: divide by course and make dropdowns?
+	class_ = forms.CharField(max_length=256)	# TODO: divide by course and make dropdowns?
 
 
 class KeywordsForm(forms.Form):

@@ -66,12 +66,9 @@
 		text-align: center;
 		height: 300px;
 		position: relative;
-		top: 40%;
+		top: 30%;
 		transform: 			
 		translateY(-50%);
-
-		margin-left: 10em;
-		margin-right: 10em;
 	}
 
 	.formStyle {
@@ -183,7 +180,7 @@
 		Textboxes
 	**********************/
 
-	#id_major1, #id_major2, #id_current_semester, #id_classes, #id_major, #id_semester, #id_class_name, #id_keywords, #username_box, #password_box, #id_username, #id_email, #id_password{
+	#id_major1, #id_major2, #id_current_semester, #id_classes, #id_major, #id_semester, #id_class_, #id_keywords, #username_box, #password_box, #id_username, #id_email, #id_password{
 		width: 200px;
 		margin: 0 auto;
 	}
@@ -264,6 +261,135 @@
 	    content: counter(rowNumber);
 	    min-width: 1em;
 	    margin-right: 1em;
+	}
+
+
+
+/*********************************************************************************/
+/* Three Columns                                                                 */
+/*********************************************************************************/
+
+	#three-column
+	{
+		overflow: hidden;
+		padding: 4em 0em;
+	}
+
+	#three-column .title
+	{
+		margin-bottom: 2em !important;
+		text-align: left !important;
+	}
+	
+	#three-column .title h2
+	{
+		display: block;
+		margin: 1em 0em 0em 0em;
+		font-size: 1.5em;
+	}
+	
+	#three-column .title .byline
+	{
+		display: block;
+		padding-top: 0.30em;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+	}
+	
+	#three-column .icon
+	{
+		position: relative;
+		display: block;
+		margin: 0px auto 0.80em auto;
+		background: none;
+		line-height: 150px;
+		font-size: 4em;
+		width: 150px;
+		height: 150px;
+		border-radius: 100px;
+		border: 6px solid #67128F;
+		text-align: center;
+		color: #FFF;
+		
+	}
+		
+	#three-column #tbox1,
+	#three-column #tbox2
+	{
+		float: left;
+		width: 380px;
+	}
+
+	#three-column #tbox1
+	{
+		margin-right: 30px;
+	}
+
+	#three-column #tbox3
+	{
+		float: right;
+		width: 380px;
+	}
+	
+	#three-column .title
+	{
+		text-align: center;
+	}
+	
+	#three-column .title h2
+	{
+		font-size: 1.60em;
+	}
+	
+	#three-column .title .byline
+	{
+		padding-top: 0.50em;
+		font-size: 0.90em;
+		color: #858585;
+	}
+
+	#three-column .arrow-down
+	{
+		border-top-color: #292929;
+	}
+	
+	
+	ul.tools
+	{
+		margin: 0;
+		padding: 0em 0em 0em 0em;
+		list-style: none;
+	}
+	
+	ul.tools li
+	{
+		display: inline-block;
+		padding: 0em .2em;
+		font-size: 4em;
+	}
+	
+	ul.tools li span
+	{
+		display: none;
+		margin: 0;
+		padding: 0;
+	}
+	
+	ul.tools li a
+	{
+		color: #FFF;
+	}
+	
+	ul.tools li a:before
+	{
+		display: inline-block;
+		background: #1ABC9C;
+		width: 120px;
+		height: 120px;
+		border-radius: 50%;
+		line-height: 120px;
+		text-align: center;
+		color: #FFFFFF;
 	}
 
 
@@ -1801,7 +1927,7 @@
 	}
 
 	body, input, select, textarea {
-		font-family: "Raleway", Arial, Helvetica, sans-serif;
+		font-family: Helvetica, "Raleway", Arial, sans-serif;
 		font-size: 14pt;
 		font-weight: 300;
 		letter-spacing: 0.09em;
