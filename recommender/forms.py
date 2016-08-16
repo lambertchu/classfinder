@@ -29,20 +29,14 @@ class UserForm(forms.ModelForm):
 
 class UserProfileForm(forms.ModelForm):
 	majors = get_mit_majors()
-	major1 = forms.ChoiceField(choices=majors, initial="None")
-	major2 = forms.ChoiceField(choices=majors, initial="None")
+	major_1 = forms.ChoiceField(choices=majors, initial="None")
+	major_2 = forms.ChoiceField(choices=majors, initial="None")
 	semester = forms.ChoiceField(choices=[(x, x) for x in range(1, 9)])
-	classes = forms.CharField(max_length=256)
-	# classes = autocomplete.ModelSelect2Multiple(url='user-autocomplete')
+	#classes_taken = forms.CharField(max_length=256)
 
 	class Meta:
 		model = UserProfile
-		fields = ('major1', 'major2', 'semester', 'classes')
-		# widgets = {
-  #           'classes': autocomplete.ModelSelect2Multiple(
-  #           	'recommender:classes-autocomplete'
-  #           )
-  #       }
+		fields = ('major_1', 'major_2', 'semester')
 
 
 class GetPopularClassesForm(forms.Form):

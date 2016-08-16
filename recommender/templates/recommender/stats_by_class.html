@@ -10,17 +10,18 @@
 	    {% load_chart charttype chartdata chartcontainer extra %}
 	{% else %}
 		<h1>Search for a class</h1>
-		<p>Enter the name of a class or a search term.</p>
-		<p>Examples: "8.01", "21M.030", "electronic music"</p>
+		<div class="details">
+			<p>Enter the name of a class or a search term.</p>
+			Examples: "8.01", "21M.030", "electronic music"
+		</div>
 	{% endif %}
 </head>
 
 <body>
 	<form role="form" action="" method="post">
 	    {% csrf_token %}
-	    {{ form.as_p }}
+	    {{ form.as_p }} 
 	    <button class="inline_button" type="submit">Go</button>
-	    <div class="clearfix"></div>
 	</form>
 
 	{% if info != None %}

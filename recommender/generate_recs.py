@@ -56,9 +56,9 @@ def get_term_relevance_data(cur_term, new_classes):
 """
 Calculate the "importance" rating of one new class
 """
-def calculate_rating(new_class, student_classes_list, class_table, shared_classes_table):
+def calculate_rating(new_class, student_classes, class_table, shared_classes_table):
     rating = 1
-    for s in student_classes_list:
+    for s in student_classes:
         index = class_table[s]
         total_number_class = shared_classes_table[index][index]
         if total_number_class == 0:
@@ -80,9 +80,8 @@ Recommendations are for the current semester and are based upon all classes take
 TODO: error handling for invalid class?
 """
 def generate_recommendations(major, cur_semester, student_classes):
-    student_classes_list = student_classes.split()
     new_classes = get_new_classes.get_classes_to_take(major, student_classes)
-    all_classes = student_classes_list + new_classes
+    all_classes = student_classes + new_classes
 
     if major == '18_applied' or major == '18_general':
         major = '18'
@@ -102,7 +101,7 @@ def generate_recommendations(major, cur_semester, student_classes):
     importance_ratings = {}
 
     for new_class in new_classes:
-        rating = calculate_rating(new_class, student_classes_list, class_table, shared_classes_table)
+        rating = calculate_rating(new_class, student_classes, class_table, shared_classes_table)
         # try:
         #     rating *= term_data[new_class]    # time relevance
         # except:

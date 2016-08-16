@@ -25,7 +25,7 @@ def get_online_info(subject):
 	client_id = "ea65df8068bd4a0f8ed9ebda0d2067b5"
 	client_secret = "7e37b0d1c7a547858D667BC330A32134"
 
-	TERM = "2016SP"
+	TERM = "2016FA"
 	URL = "https://mit-public.cloudhub.io/coursecatalog/v2/terms/%s/subjects/%s" % (TERM, subject)
 
 	try:

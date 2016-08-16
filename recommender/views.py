@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, render_to_response, redirect
 from django.template import RequestContext
 from django.core.urlresolvers import reverse, reverse_lazy
@@ -7,15 +8,9 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views import generic
 
-from models import UserProfile
+from models import UserProfile, CompleteEnrollmentData
 from .forms import UserForm, UserProfileForm, KeywordsForm, GetPopularClassesForm, GetSubjectForm
-import generate_recs, keyword_similarity, subject_info, create_graphs
-from dal import autocomplete
-
-
-
-# IDEA: create a poll/forum where users can vote for "unknown" classes they recommend
-
+import generate_recs, keyword_similarity, subject_info, create_graphs, startup
 
 
 def index(request):
@@ -24,26 +19,31 @@ def index(request):
 
 @login_required
 def profile(request):
+    mit_classes = startup.mit_classes
+    profile = request.user.userprofile
+    classes_taken = profile.classes
+
     # process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
         try:
             form = UserProfileForm(request.POST, instance=request.user.userprofile)
         except:
+            print "Couldn't load user profile"
             form = UserProfileForm(request.POST)
 
         # check whether it's valid:
         if form.is_valid():
             profile = form.save(commit=False)
+            profile.classes = dict(request.POST.lists())['classes']
             profile.save()
-            return render(request, 'recommender/profile.html', {'form': form})
+            return render(request, 'recommender/profile.html', {'form': form, 'mit_classes': mit_classes, 'classes_taken': profile.classes})
 
     else:
-        profile = request.user.userprofile
-        data = {'major1':profile.major1, 'major2':profile.major2, 'semester':profile.semester, 'classes':profile.classes}
+        data = {'major_1':profile.major1, 'major_2':profile.major2, 'semester':profile.semester, 'classes':classes_taken}
         form = UserProfileForm(initial=data)
-
-    return render(request, 'recommender/profile.html', {'form': form})
+    
+    return render(request, 'recommender/profile.html', {'form': form, 'mit_classes': mit_classes, 'classes_taken': classes_taken})
 
 
 @login_required
@@ -110,7 +110,7 @@ def class_info_initial(request):
     if request.method == 'POST':
         form = GetSubjectForm(request.POST)
         if form.is_valid():
-            class_name = form.cleaned_data['class_name']
+            class_name = form.cleaned_data['class_']
             return class_info(request, class_name)
 
     return render(request, 'recommender/stats_by_class.html', {'form': form})
@@ -123,7 +123,7 @@ def class_info(request, class_name):
     if request.method == 'POST':
         form = GetSubjectForm(request.POST)
         if form.is_valid():
-            class_name = form.cleaned_data['class_name']
+            class_name = form.cleaned_data['class_']
 
     info = subject_info.get_online_info(class_name)
 
@@ -250,20 +250,12 @@ def user_logout(request):
     return render(request, 'recommender/index.html')
 
 
-
-
-
-# from select2_many_to_many.forms import TestForm
-# from select2_many_to_many.models import TestModel
-# # from models import SubjectInfo
-
-
-# class UpdateView(generic.UpdateView):
-#     model = TestModel
-#     form_class = TestForm
-#     template_name = 'recommender/select2_outside_admin.html'
-#     success_url = reverse_lazy('select2_outside_admin')
-
-#     def get_object(self):
-#         return TestModel.objects.first()
-
+def get_classes(request):
+    if request.is_ajax():
+        q = request.GET.get('term', '')
+        classes = startup.classes.filter(subject__icontains = q )[:10]
+        data = json.dumps(list(classes))
+    else:
+        data = 'fail'
+    mimetype = 'application/json'
+    return HttpResponse(data, mimetype)
