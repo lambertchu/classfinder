@@ -65,14 +65,15 @@
 	.details {
 		-moz-border-radius: 15px; /*for mozilla support*/
         -webkit-border-radius: 15px; /*for chrome support*/
-		border: 2px solid #00f;
+		border: 2px solid #A31F34;
     	border-radius: 20px;
     	padding: 20px;
-    	background-color: #c4e8f3;
+    	/*background-color: #c4e8f3;*/
     	color: #000;
-    	width: 40%;
+    	width: 35%;
     	margin-left: auto;
     	margin-right: auto;
+    	margin-bottom: 40px;
 	}
 
 	.block {
@@ -107,6 +108,10 @@
 		/*display: inline-block;
 		float: right;
 		white-space: nowrap;*/
+	}
+
+	.axis_label {
+		text-align: center;
 	}
 
 	#recs_block{

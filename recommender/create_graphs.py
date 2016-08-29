@@ -1,4 +1,4 @@
-def create_bar_graph(term_stats, form, class_name, info):    
+def create_bar_graph(term_stats, class_name, info):    
     xdata = []
     ydata = []
     for term, value in term_stats.iteritems():
@@ -9,7 +9,6 @@ def create_bar_graph(term_stats, form, class_name, info):
     charttype = 'discreteBarChart'
     chartcontainer = 'discretebarchart_container'
     data = {
-        'form': form,
         'class_name': class_name,
         'info': info,
         'charttype': charttype,
@@ -25,7 +24,7 @@ def create_bar_graph(term_stats, form, class_name, info):
     return data
 
 
-def create_horizontal_bar_graph(major, form, term, classes):
+def create_horizontal_bar_graph(major, term, classes):
     xdata = []
     ydata = []
     for cls in classes:
@@ -34,7 +33,6 @@ def create_horizontal_bar_graph(major, form, term, classes):
 
     chartdata = {'x': xdata, 'y': ydata}
     data = {
-        'form': form,
         'major': major,
         'term': term,
         'charttype': 'multiBarHorizontalChart',

@@ -14,7 +14,7 @@
 </head>
 
 <body>
-	<form role="form" action="" method="post">
+	<form class="details" role="form" action="" method="post">
 	    {% csrf_token %}
 	    {{ form.as_p }}
 	    <button class="inline_button" type="submit">Go</button>
@@ -25,6 +25,7 @@
 	    <h2>During Semester {{ term }}</h2>
 	    <div class = "major_stats_container">
 	    {% include_container chartcontainer 400 800 %}
+	    <p class="axis_label">Number of Students</p>
 	    </div>
 	{% endif %}
 </body>

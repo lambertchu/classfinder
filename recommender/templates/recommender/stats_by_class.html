@@ -10,15 +10,13 @@
 	    {% load_chart charttype chartdata chartcontainer extra %}
 	{% else %}
 		<h1>Search for a class</h1>
-		<div class="details">
-			<p>Enter the name of a class or a search term.</p>
-			Examples: "8.01", "21M.030", "electronic music"
-		</div>
+		<p>Enter the name of a class or a search term.</p>
+		<p>Examples: "8.01", "21M.030", "electronic music"</p>
 	{% endif %}
 </head>
 
 <body>
-	<form role="form" action="" method="post">
+	<form class="details" role="form" action="" method="post">
 	    {% csrf_token %}
 	    {{ form.as_p }} 
 	    <button class="inline_button" type="submit">Go</button>
@@ -33,6 +31,7 @@
 			<p><b>Instructors:</b> {{info.instructors}}</p>
 			<p><b>Description:</b> {{info.description}}</p>
 			{% include_container chartcontainer 400 800 %}
+			<p class="axis_label">Semester Number</p>
 		</div>
 	{% endif %}
 </body>

@@ -98,7 +98,8 @@ def popular_classes_by_major(request, classes=None):
         return render(request, 'recommender/stats_by_major.html', {'form': form})
 
     # Create horizontal bar graph
-    data = create_graphs.create_horizontal_bar_graph(major, form, term, classes)
+    data = create_graphs.create_horizontal_bar_graph(major, term, classes)
+    data['form'] = form
     return render(request, 'recommender/stats_by_major.html', data)
 
 
@@ -139,7 +140,8 @@ def class_info(request, class_name):
     term_stats = subject_info.get_term_stats(class_name)
 
     # Create bar graph
-    data = create_graphs.create_bar_graph(term_stats, form, class_name, info)
+    data = create_graphs.create_bar_graph(term_stats, class_name, info)
+    data['form'] = form
 
     # TODO
     # return redirect(reverse('recommender:class_info'), args=(response,), urllib.urlencode(data))

@@ -2,7 +2,7 @@ import math
 from django.core.cache import cache
 from django.db.models import Q
 from models import CompleteEnrollmentData, SharedClassesByMajor, SubjectInfo
-import get_new_classes
+import get_new_classes, subject_info
 
 
 """
@@ -116,7 +116,10 @@ def generate_recommendations(major, cur_semester, student_classes):
         try:
             title = class_titles[c]
         except:
-            title = ""
+            try:
+                title = subject_info.get_online_info(c)['title']
+            except:
+                title = ""
 
         recs.append((c, title))
 
