@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-import mit
+# import mit
 
 urlpatterns = [
     url(r'^', include('recommender.urls', namespace='recommender')),

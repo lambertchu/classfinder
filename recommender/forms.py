@@ -1,8 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
 from recommender.models import UserProfile, CompleteEnrollmentData
-from dal import autocomplete
-
 
 """
 Import all majors at MIT. Returns a list of tuples of the majors

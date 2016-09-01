@@ -1,7 +1,5 @@
 from django.conf.urls import url
-
 from . import views
-from dal import autocomplete
 
 app_name = 'recommender'
 urlpatterns = [
