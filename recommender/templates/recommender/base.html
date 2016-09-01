@@ -7,10 +7,9 @@
 
 <div id="menu">
 	<ul>
-	    <li class="hvr-grow">{% block nav-home %}<a href="{% url 'recommender:index' %}">Home</a>{% endblock %}</li>
-	    <li class="hvr-grow">{% block nav-profile %}<a href="{% url 'recommender:profile' %}">Profile</a>{% endblock %}</li>
+	    <li class="hvr-grow">{% block nav-profile %}<a href="{% url 'recommender:index' %}">Profile</a>{% endblock %}</li>
 	    <li class="hvr-grow">{% block nav-rec %}<a href="{% url 'recommender:recommendations' user.userprofile.major1 %}">Recommendations</a>{% endblock %}</li>
-	    <li class="hvr-grow">{% block nav-subject %}<a href="{% url 'recommender:class_info_initial' %}">Search for Class</a>{% endblock %}</li>
+	    <li class="hvr-grow">{% block nav-subject %}<a href="{% url 'recommender:class_info_initial' %}">Search Classes</a>{% endblock %}</li>
 	    <li class="hvr-grow">{% block nav-major %}<a href="{% url 'recommender:major' %}">Stats By Major</a>{% endblock %}</li>
 
 	    {% if user.is_anonymous %}

@@ -297,7 +297,6 @@
 	#three-column
 	{
 		overflow: hidden;
-		padding: 4em 0em;
 	}
 
 	#three-column .title
@@ -337,23 +336,23 @@
 		color: #FFF;
 		
 	}
-		
-	#three-column #tbox1,
-	#three-column #tbox2
-	{
-		float: left;
-		width: 380px;
-	}
 
 	#three-column #tbox1
 	{
-		margin-right: 30px;
+		float: left;
+		width: 33%;
+	}
+
+	#three-column #tbox2
+	{
+		display: inline-block;
+		width: 33%;
 	}
 
 	#three-column #tbox3
 	{
 		float: right;
-		width: 380px;
+		width: 33%;
 	}
 	
 	#three-column .title
@@ -2023,7 +2022,7 @@
 		font-weight: 300;
 		line-height: 1em;
 		margin: 0 0 1em 0;
-		text-transform: uppercase;
+		/*text-transform: uppercase;*/
 	}
 
 		h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {

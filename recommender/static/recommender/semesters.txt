@@ -1,0 +1,10 @@
+1, Freshman Fall
+2, Freshman Spring
+3, Sophomore Fall
+4, Sophomore Spring
+5, Junior Fall
+6, Junior Spring
+7, Senior Fall
+8, Senior Spring
+9, Super-Senior Fall
+10, Super-Senior Spring

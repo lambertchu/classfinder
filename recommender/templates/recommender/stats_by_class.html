@@ -1,5 +1,5 @@
 {% extends 'recommender/base.html' %}
-{% block nav-subject %}<strong class="nav-active">Search For Class</strong>{% endblock %}
+{% block nav-subject %}<strong class="nav-active">Search Classes</strong>{% endblock %}
 
 {% block content %}
 <!-- Modals: http://www.abidibo.net/blog/2014/05/26/how-implement-modal-popup-django-forms-bootstrap/ -->
@@ -9,7 +9,7 @@
 	    {% include_chart_jscss %}
 	    {% load_chart charttype chartdata chartcontainer extra %}
 	{% else %}
-		<h1>Search for a class</h1>
+		<h1>Search Classes</h1>
 		<p>Enter the name of a class or a search term.</p>
 		<p>Examples: "8.01", "21M.030", "electronic music"</p>
 	{% endif %}

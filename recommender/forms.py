@@ -29,9 +29,12 @@ class UserForm(forms.ModelForm):
 
 class UserProfileForm(forms.ModelForm):
 	majors = get_mit_majors()
+	with open('recommender/static/recommender/semesters.txt', 'r') as f:
+		semesters = [tuple(i.split(',')) for i in f]
+
 	major_1 = forms.ChoiceField(choices=majors, initial="None")
 	major_2 = forms.ChoiceField(choices=majors, initial="None")
-	semester = forms.ChoiceField(choices=[(x, x) for x in range(1, 9)])
+	semester = forms.ChoiceField(choices=semesters)
 	#classes_taken = forms.CharField(max_length=256)
 
 	class Meta:

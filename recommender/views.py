@@ -50,7 +50,7 @@ def profile(request):
 def recommendations(request, major):
     #  Choices are: classes, id, major1, major2, semester, user, user_id
     profile = request.user.userprofile
-    # return redirect(reverse('recommender:profile'))
+    # return redirect(reverse('recommender:index'))
 
     major1 = profile.major1
     major2 = profile.major2
@@ -225,7 +225,7 @@ def user_login(request):
                 # If the account is valid and active, we can log the user in.
                 # We'll send the user back to the homepage.
                 login(request, user)
-                return render_to_response('recommender/index.html')
+                return redirect(reverse('recommender:index'))
             else:
                 # An inactive account was used - no logging in!
                 return HttpResponse("Your account is disabled.")
@@ -249,7 +249,7 @@ def user_logout(request):
 
     # TODO: message that says "Thanks for using"
     # Take the user back to the homepage.
-    return render(request, 'recommender/index.html')
+    return redirect(reverse('recommender:index'))
 
 
 def get_classes(request):
