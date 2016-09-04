@@ -2,7 +2,6 @@
 {% block nav-profile %}<strong class="nav-active">Profile</strong>{% endblock %}
 
 {% block content %}
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.5.1/chosen.css">
 	<h1>{{user}}'s Profile</h1>
 	
 	<form id="profile_form" role="form" action="" method="post">
@@ -10,7 +9,7 @@
 	    {{ form.as_p }}
 	    <p>
 		    <label for="id_classes">Classes Taken:</label>
-		    <select id="id_classes" name="classes" class="chosen-select" multiple="true" data-placeholder="Enter a class...">
+		    <select required id="id_classes" name="classes" class="chosen-select" multiple="true" data-placeholder="Enter a class...">
 		    	<!-- Create dropdown of all MIT classes -->
 		    	{% for class in mit_classes %}
 		    		{% if class in classes_taken %}
@@ -22,7 +21,7 @@
 		    	{% endfor %}
 			</select>
 		</p>
-		<input type="submit" value="Save"  />
+		<input type="submit" value="Save"/>
 	</form>
 
 	<script type="text/javascript">

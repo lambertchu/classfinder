@@ -120,7 +120,7 @@
 		margin-bottom: 5em;
 	}
 
-	#profile_form{
+	#profile_form, #user_form{
 		margin-bottom: 5em;
 	}
 
@@ -201,7 +201,7 @@
 	**********************/
 
 	#id_major_1, #id_major_2, #id_current_semester, #id_major, #id_semester, #id_class_, #id_keywords, #username_box, #password_box, #id_username, #id_email, #id_password{
-		width: 200px;
+		width: 400px;
 		margin: 0 auto;
 	}
 

@@ -20,10 +20,30 @@
 	         making everything look neater. -->
 	    {{ user_form.as_p }}
 	    {{ profile_form.as_p }}
-
+	    <p>
+		    <label for="id_classes">Classes Taken:</label>
+		    <select required id="id_classes" name="classes" class="chosen-select" multiple="true" data-placeholder="Enter a class...">
+		    	<!-- Create dropdown of all MIT classes -->
+		    	{% for class in mit_classes %}
+		    		{% if class in classes_taken %}
+		    			<!-- Prepopulate box with taken classes -->
+		    			<option selected="selected" value="{{ class }}">{{ class }}</option>
+		    		{% else %}
+		    			<option value="{{ class }}">{{ class }}</option>
+		    		{% endif %}
+		    	{% endfor %}
+			</select>
+		</p>
 	    <!-- Provide a button to click to submit the form. -->
-	    <input type="submit" name="submit" value="Register" />
+	    <input type="submit" name="submit" value="Register"/>
 	</form>
 	{% endif %}
 </body>
+
+<script type="text/javascript">
+		$(function() {
+		    $(".chosen-select").chosen();
+		});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.5.1/chosen.jquery.js"></script>
 {% endblock %}

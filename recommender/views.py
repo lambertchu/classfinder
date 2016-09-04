@@ -50,12 +50,14 @@ def profile(request):
 def recommendations(request, major):
     #  Choices are: classes, id, major1, major2, semester, user, user_id
     profile = request.user.userprofile
-    # return redirect(reverse('recommender:index'))
 
     major1 = profile.major1
     major2 = profile.major2
     cur_sem = profile.semester
     classes = profile.classes
+
+    if major1 == None or cur_sem == None or classes == None:
+        return render(request, 'recommender/profile.html')
 
     if major == "" or major == None:
         major = major1
@@ -155,6 +157,8 @@ def register(request):
     # Set to False initially. Code changes value to True when registration succeeds.
     registered = False
 
+    mit_classes = startup.mit_classes
+
     # If it's a HTTP POST, we're interested in processing form data.
     if request.method == 'POST':
         # Attempt to grab information from the raw form information.
@@ -199,7 +203,7 @@ def register(request):
     # Render the template depending on the context.
     return render_to_response(
             'registration/register.html',
-            {'user_form': user_form, 'profile_form': profile_form, 'registered': registered},
+            {'user_form': user_form, 'profile_form': profile_form, 'registered': registered, 'mit_classes': mit_classes},
             context)
 
 
