@@ -16,6 +16,9 @@ for cl in classes:
     mit_classes.append(cl)
 mit_classes.sort()
 
+email = None
+username = None
+
 # TODO: filter classes that were rarely taken and/or not offered anymore
 # Need to fix Subject_Info table. Some classes have missing info - fill in the blanks.
 # Some classes not included at all - use the missing classes from keyword search to find those classes

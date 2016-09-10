@@ -24,11 +24,9 @@ def get_mit_majors_without_none():
 
 
 class UserForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput())
-
     class Meta:
         model = User
-        fields = ('username', 'email', 'password')
+        fields = ('username', 'email')
 
 
 class UserProfileForm(forms.ModelForm):

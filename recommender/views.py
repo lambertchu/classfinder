@@ -1,20 +1,15 @@
 import json
 from django.shortcuts import render, render_to_response, redirect
 from django.template import RequestContext
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.views import generic
 
-from models import UserProfile, CompleteEnrollmentData
+from models import UserProfile
 from .forms import UserForm, UserProfileForm, KeywordsForm, GetPopularClassesForm, GetSubjectForm
 import generate_recs, keyword_similarity, subject_info, create_graphs, startup
-
-
-def index(request):
-    return render(request, 'recommender/index.html')
 
 
 @login_required
@@ -37,10 +32,11 @@ def profile(request):
             profile = form.save(commit=False)
             profile.classes = dict(request.POST.lists())['classes']
             profile.save()
+            print form
             return render(request, 'recommender/profile.html', {'form': form, 'mit_classes': mit_classes, 'classes_taken': profile.classes})
 
     else:
-        data = {'major_1':profile.major1, 'major_2':profile.major2, 'semester':profile.semester, 'classes':classes_taken}
+        data = {'major_1':profile.major_1, 'major_2':profile.major_2, 'semester':profile.semester, 'classes':classes_taken}
         form = UserProfileForm(initial=data)
     
     return render(request, 'recommender/profile.html', {'form': form, 'mit_classes': mit_classes, 'classes_taken': classes_taken})
@@ -51,13 +47,13 @@ def recommendations(request, major):
     #  Choices are: classes, id, major1, major2, semester, user, user_id
     profile = request.user.userprofile
 
-    major1 = profile.major1
-    major2 = profile.major2
+    major1 = profile.major_1
+    major2 = profile.major_2
     cur_sem = profile.semester
     classes = profile.classes
 
     if major1 == None or cur_sem == None or classes == None:
-        return render(request, 'recommender/profile.html')
+        return redirect(reverse('recommender:profile'))
 
     if major == "" or major == None:
         major = major1
@@ -152,116 +148,52 @@ def class_info(request, class_name):
 
 def register(request):
     context = RequestContext(request)
+    username = startup.username
 
-    # A boolean value for telling the template whether the registration was successful.
-    # Set to False initially. Code changes value to True when registration succeeds.
-    registered = False
+    user = User.objects.create_user(username, startup.email, '')
+    user.save()
+    profile = UserProfile.objects.create(user=user, major1="1_A", major2="None", semester=1)
+    profile.save()
 
-    mit_classes = startup.mit_classes
-
-    # If it's a HTTP POST, we're interested in processing form data.
-    if request.method == 'POST':
-        # Attempt to grab information from the raw form information.
-        # Note that we make use of both UserForm and UserProfileForm.
-        user_form = UserForm(data=request.POST)
-        profile_form = UserProfileForm(data=request.POST)
-
-        # If the two forms are valid...
-        if user_form.is_valid() and profile_form.is_valid():
-            # Save the user's form data to the database.
-            user = user_form.save()
-
-            # Now we hash the password with the set_password method.
-            # Once hashed, we can update the user object.
-            user.set_password(user.password)
-            user.save()
-
-            # Now sort out the UserProfile instance.
-            # Since we need to set the user attribute ourselves, we set commit=False.
-            # This delays saving the model until we're ready to avoid integrity problems.
-            profile = profile_form.save(commit=False)
-            profile.user = user
-
-            # Now we save the UserProfile model instance.
-            profile.save()
-
-            # Update our variable to tell the template registration was successful.
-            registered = True
-
-        # Invalid form or forms - mistakes or something else?
-        # Print problems to the terminal.
-        # They'll also be shown to the user.
-        else:
-            print user_form.errors, profile_form.errors
-
-    # Not a HTTP POST, so we render our form using two ModelForm instances.
-    # These forms will be blank, ready for user input.
-    else:
-        user_form = UserForm()
-        profile_form = UserProfileForm()
+    if user.is_active:
+        # If the account is valid and active, we can log the user in.
+        # We'll send the user back to the homepage.
+        user = authenticate(username=username, password='')
+        login(request, user)
 
     # Render the template depending on the context.
-    return render_to_response(
-            'registration/register.html',
-            {'user_form': user_form, 'profile_form': profile_form, 'registered': registered, 'mit_classes': mit_classes},
-            context)
+    return redirect(reverse('recommender:profile'))
 
 
 def user_login(request):
+    if startup.email == None:
+        try:
+            # startup.email = request.META['USER']
+            startup.email = request.META['SSL_CLIENT_S_DN_Email']
+            startup.username = startup.email.split('@')[0]
+        except:
+            print "Error processing email address."
+
     context = RequestContext(request)
-    # If the request is a HTTP POST, try to pull out the relevant information.
-    if request.method == 'POST':
-        # Gather the username and password provided by the user.
-        # This information is obtained from the login form.
-        username = request.POST['username']
-        password = request.POST['password']
 
-        # Use Django's machinery to attempt to see if the username/password
-        # combination is valid - a User object is returned if it is.
-        user = authenticate(username=username, password=password)
+    username = startup.username
 
-        # If we have a User object, the details are correct.
-        # If None (Python's way of representing the absence of a value), no user
-        # with matching credentials was found.
-        if user:
-            # Is the account active? It could have been disabled.
-            if user.is_active:
-                # If the account is valid and active, we can log the user in.
-                # We'll send the user back to the homepage.
-                login(request, user)
-                return redirect(reverse('recommender:index'))
-            else:
-                # An inactive account was used - no logging in!
-                return HttpResponse("Your account is disabled.")
+    # Use Django's machinery to attempt to see if the username/password
+    # combination is valid - a User object is returned if it is.
+    user = authenticate(username=username, password='')
+
+    # If we have a User object, the details are correct.
+    # If None (Python's way of representing the absence of a value), no user
+    # with matching credentials was found.
+    if user:
+        # Is the account active? It could have been disabled.
+        if user.is_active:
+            # If the account is valid and active, we can log the user in.
+            # We'll send the user back to the homepage.
+            login(request, user)
+            return redirect(reverse('recommender:profile'))
         else:
-            # Bad login details were provided. So we can't log the user in.
-            print "Invalid login details: {0}, {1}".format(username, password)
-            return HttpResponse("Invalid login details supplied.")
-
-    # The request is not a HTTP POST, so display the login form.
-    # This scenario would most likely be a HTTP GET.
+            # An inactive account was used - no logging in!
+            return HttpResponse("Your account is disabled.")
     else:
-        # No context variables to pass to the template system, hence the
-        # blank dictionary object...
-        return render_to_response('registration/login.html', {}, context)
-
-
-@login_required
-def user_logout(request):
-    # Since we know the user is logged in, we can now just log them out.
-    logout(request)
-
-    # TODO: message that says "Thanks for using"
-    # Take the user back to the homepage.
-    return redirect(reverse('recommender:index'))
-
-
-def get_classes(request):
-    if request.is_ajax():
-        q = request.GET.get('term', '')
-        classes = startup.classes.filter(subject__icontains = q )[:10]
-        data = json.dumps(list(classes))
-    else:
-        data = 'fail'
-    mimetype = 'application/json'
-    return HttpResponse(data, mimetype)
+        return register(request)

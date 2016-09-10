@@ -7,15 +7,15 @@
 
 <div id="menu">
 	<ul>
-	    <li class="hvr-grow">{% block nav-profile %}<a href="{% url 'recommender:index' %}">Profile</a>{% endblock %}</li>
-	    <li class="hvr-grow">{% block nav-rec %}<a href="{% url 'recommender:recommendations' user.userprofile.major1 %}">Recommendations</a>{% endblock %}</li>
+	    <li class="hvr-grow">{% block nav-profile %}<a href="{% url 'recommender:profile' %}">Profile</a>{% endblock %}</li>
+	    <li class="hvr-grow">{% block nav-rec %}<a href="{% url 'recommender:recommendations' user.userprofile.major_1 %}">Recommendations</a>{% endblock %}</li>
 	    <li class="hvr-grow">{% block nav-subject %}<a href="{% url 'recommender:class_info_initial' %}">Search Classes</a>{% endblock %}</li>
 	    <li class="hvr-grow">{% block nav-major %}<a href="{% url 'recommender:major' %}">Stats By Major</a>{% endblock %}</li>
 
 	    {% if user.is_anonymous %}
-			<li class="hvr-grow pull-right"><a href="{% url 'recommender:login' %}">Login</a></li>
+			<li>...</li>
 		{% else %}
-			<li class="hvr-grow pull-right"><a href="{% url 'recommender:logout' %}">Logout ({{user}})</a></li>
+			<li class="pull-right"><a>Welcome, {{user}}</a></li>
 		{% endif %}
 	</ul>
 </div>

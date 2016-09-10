@@ -10,10 +10,10 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User)
 
     # The additional attributes we wish to include.
-    major1 = models.CharField(max_length=10)
-    major2 = models.CharField(max_length=10)
+    major_1 = models.CharField(max_length=10)
+    major_2 = models.CharField(max_length=10)
     semester = models.IntegerField()
-    classes = JSONField()
+    classes = JSONField(blank=True, null=True)
 
     # Override the __unicode__() method to return out something meaningful!
     def __unicode__(self):
