@@ -152,7 +152,7 @@ def register(request):
 
     user = User.objects.create_user(username, startup.email, '')
     user.save()
-    profile = UserProfile.objects.create(user=user, major1="1_A", major2="None", semester=1)
+    profile = UserProfile.objects.create(user=user, major_1="1_A", major_2="None", semester=1)
     profile.save()
 
     if user.is_active:
